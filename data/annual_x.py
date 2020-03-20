@@ -1,6 +1,7 @@
 import pandas as pd
 import numpy as np
 import wrds
+from tools.utils import tic_to_permon
 from pandas.tseries.offsets import *
 conn = wrds.Connection(wrds_username='dachxiu')
 
@@ -10,6 +11,7 @@ def lag(df, col, n=1, on='gvkey'):
 
 
 def build_comp(tic):
+
     comp = conn.raw_sql(f"""
                         select
                         fyear, apdedate, datadate, pdate, fdate, c.gvkey, f.cusip as cnum, datadate as datadate_a, 
@@ -34,7 +36,10 @@ def build_comp(tic):
 
     comp.cnum = comp.cnum.replace(' ', '').str.slice(0, 6)
     comp.sic2 = comp.sic2 + '12'
+    comp.apdedate = pd.to_datetime(comp.apdedate)
     comp.datadate = pd.to_datetime(comp.datadate)
+    comp.pdate = pd.to_datetime(comp.pdate)
+    comp.fdate = pd.to_datetime(comp.fdate)
     comp.year = comp['datadate'].dt.year
     comp = comp.dropna(subset=['at', 'prcc_f', 'ni'])
 
@@ -52,6 +57,7 @@ def build_comp(tic):
 
 
 def build_crsp_m(tic):
+
     crsp_m = conn.raw_sql(f"""
                           select a.permno, a.permco, a.date, b.ticker, b.ncusip, b.shrcd, b.exchcd, b.siccd,
                           a.prc, a.ret, a.retx, a.shrout, a.vol
@@ -78,10 +84,13 @@ def build_crsp_m(tic):
     return crsp_m
 
 
-def build_dlret():
+def build_dlret(tic):
+    permno = tic_to_permon(tic)
+
     dlret = conn.raw_sql(f"""
                          select permno, dlret, dlstdt
                          from crsp.msedelist
+                         where = '{permno}'
                          """)
     dlret.permno = dlret.permno.astype(int)
 
@@ -141,14 +150,17 @@ def build_crsp(crsp_m, dlret):
     return crsp_jun
 
 
-def build_ccm_data(comp, crsp_jun):
-    ccm = conn.raw_sql("""
-                      select gvkey, lpermno as permno, linktype, linkprim,
-                      linkdt, linkenddt
-                      from crsp.ccmxpf_linktable
-                      where substr(linktype,1,1)='L'
-                      and linkprim in ('P', 'C')
-                      """)
+def build_ccm_data(tic, comp, crsp_jun):
+    permno = tic_to_permon(tic)
+
+    ccm = conn.raw_sql(f"""
+                       select gvkey, lpermno as permno, linktype, linkprim,
+                       linkdt, linkenddt
+                       from crsp.ccmxpf_linktable
+                       where permno = '{permno}'
+                       and substr(linktype,1,1)='L'
+                       and linkprim in ('P', 'C')
+                       """)
 
     ccm['linkdt'] = pd.to_datetime(ccm['linkdt'])
     ccm['linkenddt'] = pd.to_datetime(ccm['linkenddt'])

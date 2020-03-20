@@ -1,16 +1,19 @@
 import pandas as pd
 import numpy as np
 import wrds
+from tools.utils import tic_to_permon
 conn = wrds.Connection(wrds_username='dachxiu')
 
 
 def build_compq6(tic, ccm_jun):
+    permno = tic_to_permon(tic)
 
     def lag(df, col, n=1, on='gvkey'):
         return df.groupby(on)[col].shift(n)
 
-    lnk = conn.raw_sql("""
+    lnk = conn.raw_sql(f"""
                          select * from crsp.ccmxpf_linktable
+                         where lpermno = '{permno}'
                          """)
     lnk = lnk[lnk['linktype'].isin(['LU','LC','LD','LF','LN','LO','LS','LX'])]
     lnk = lnk[(2018 >= lnk['linkdt'].astype(str).str[0:4].astype(int)) | (lnk['linkdt'] == '.B') ]
@@ -40,7 +43,7 @@ def build_compq6(tic, ccm_jun):
             'cashdebt', 'realestate', 'roe', 'operprof', 'mve_f', 'm1','m2','m3','m4','m5','m6']]
 
     crsp_msf = conn.raw_sql(f"""
-                          select permno, ret, retx, prc, shrout, vol, date, permno from crsp.msf
+                          select ret, retx, prc, shrout, vol, date, permno from crsp.msf
                           where permno = '{permno}'
                           """)
     crsp_msf = crsp_msf[crsp_msf['permno'].isin(temp['permno'])]
@@ -56,7 +59,7 @@ def build_compq6(tic, ccm_jun):
 
     temp2 = pd.merge(z, temp, on=['permno','datadate'], how='left')
     crsp_mseall = conn.raw_sql(f"""
-                              select date, permno, permno, exchcd, shrcd, siccd from crsp.mseall
+                              select date, permno, exchcd, shrcd, siccd from crsp.mseall 
                               where permno = '{permno}'
                               and exchcd in (1, 2, 3) and shrcd in (10, 11)
                               """)
@@ -76,11 +79,11 @@ def build_compq6(tic, ccm_jun):
     temp2 = temp2[((temp2['date']>=temp2['exchstdt']) & (temp2['date']<=temp2['exchedt']))]
 
     crsp_mseall_dl = conn.raw_sql(f"""
-                                  select permno, dlret, dlstcd, exchcd, shrcd, siccd, date, permno from crsp.mseall
+                                  select dlret, dlstcd, exchcd, date, permno from crsp.mseall
                                   where permno = '{permno}'
                                   """)
     crsp_mseall_dl['date'] = pd.to_datetime(crsp_mseall_dl['date'])
-    temp2 = pd.merge(temp2, crsp_mseall_dl, on=['date','permno'])
+    temp2 = pd.merge(temp2, crsp_mseall_dl, on=['date', 'permno'])
 
     temp2['exchcd'] = temp2['exchcd_x']
 
@@ -90,10 +93,10 @@ def build_compq6(tic, ccm_jun):
     temp2.loc[ (temp2['dlret'].isna()), 'dlret'] = 0 #TODO: wtf? this should not be 0... i think this should be not missing...
     temp2['ret'] = temp2['ret'] + temp2['dlret']
 
-    temp2 = temp2.sort_values(['permno','date','datadate'], ascending=[True, True, False])
-    temp2 = temp2.drop_duplicates(['permno','date'])
+    temp2 = temp2.sort_values(['permno', 'date', 'datadate'], ascending=[True, True, False])
+    temp2 = temp2.drop_duplicates(['permno', 'date'])
 
-    temp2 = temp2.rename(columns={'datadate':'time_2'})
+    temp2 = temp2.rename(columns={'datadate': 'time_2'})
     temp2['mve0'] = np.abs(temp2['prc'])*temp2['shrout']
     temp2['mvel1'] = lag(temp2, 'mve0')
     temp2['pps'] = lag(temp2, 'prc')
@@ -113,8 +116,12 @@ def build_compq6(tic, ccm_jun):
                             and f.datafmt='STD'
                             and f.popsrc='D'
                             and f.consol='C'
-                            and datadate >= '01/01/2015'
                             """)
+
+    comp_qtr.apdedateq = pd.to_datetime(comp_qtr.apdedateq)
+    comp_qtr.datadate = pd.to_datetime(comp_qtr.datadate)
+    comp_qtr.pdateq = pd.to_datetime(comp_qtr.pdateq)
+    comp_qtr.fdateq = pd.to_datetime(comp_qtr.fdateq)
 
     comp_qtr = comp_qtr.loc[:,~comp_qtr.columns.duplicated()]
     comp_qtr['cshoq'] = comp_qtr['mveq'] / abs(comp_qtr['prccq'])
@@ -259,9 +266,10 @@ def build_compq6(tic, ccm_jun):
     compq4.loc[(compq4['medest'].isna()) | (compq4['actual']).isna(), 'sue'] = compq4['che']/compq4['mveq']
     compq4.loc[(compq4['medest'].notna()) & (compq4['actual']).notna(), 'sue'] = (compq4['actual'] - compq4['medest'])/abs(compq4['prccq'])
 
-    lnk = conn.raw_sql("""
-                         select * from crsp.ccmxpf_linktable
-                         """)
+    lnk = conn.raw_sql(f"""
+                        select * from crsp.ccmxpf_linktable
+                        where lpermno = '{permno}'
+                        """)
     lnk = lnk[lnk['linktype'].isin(['LU','LC','LD','LF','LN','LO','LS','LX'])]
     lnk = lnk[(2018 >= lnk['linkdt'].astype(str).str[0:4].astype(int)) | (lnk['linkdt'] == '.B') ]
     lnk = lnk[(lnk['linkenddt'].isna()) | ("1940" <= lnk['linkenddt'].astype(str).str[0:4])]
@@ -274,8 +282,8 @@ def build_compq6(tic, ccm_jun):
     compq5 = compq5[(compq5['lpermno'].notna()) & (compq5['rdq'].notna())]
 
     crsp_dsf = conn.raw_sql(f"""
-                          select permno, vol, ret, permno, date from crsp.dsf
-                          where permno = '{permno}'
+                          select vol, ret, permno, date from crsp.dsf as d
+                          where d.permno = '{permno}'
                           """)
     crsp_dsf = crsp_dsf[crsp_dsf['permno'].isin(compq5['lpermno'])]
     crsp_dsf['date'] = pd.to_datetime(crsp_dsf['date'])
@@ -292,12 +300,12 @@ def build_compq6(tic, ccm_jun):
     compq6['avgvol'] = compq6['avgvol_x']
     compq6['aeavol'] = (compq6['aeavol'] - compq6['avgvol'])/compq6['avgvol']
 
-    compq6 = compq6[['fyearq', 'fqtr', 'apdedateq', 'datadate', 'pdateq', 'fdateq', 'gvkey', 'lpermno', 'rdq', 'chtx',
-                     'roaq', 'rsup', 'stdacc', 'stdcf', 'sgrvol', 'rdmq', 'rdsq', 'olq', 'tanq', 'kzq', 'alaq', 'almq',
-                     'laq', 'bmq', 'dmq', 'amq', 'epq', 'cpq', 'emq', 'spq', 'ndpq', 'ebpq', 'wwq', 'rs', 'droeq',
-                     'droaq', 'noaq', 'rnaq', 'pmq', 'atoq', 'ctoq', 'glaq', 'oleq', 'olaq', 'claq', 'blq', 'sgq',
-                     'sue', 'roavol', 'cash', 'cinvest', 'm7', 'm8', 'prccq', 'roeq', 'aeavol', 'ear']]
+    compq6 = compq6[['fyearq', 'fqtr', 'apdedateq', 'datadate', 'pdateq', 'fdateq', 'gvkey', 'lpermno', 'datadate_q',
+                     'rdq', 'chtx', 'roaq', 'rsup', 'stdacc', 'stdcf', 'sgrvol', 'rdmq', 'rdsq', 'olq', 'tanq', 'kzq',
+                     'alaq', 'almq', 'laq', 'bmq', 'dmq', 'amq', 'epq', 'cpq', 'emq', 'spq', 'ndpq', 'ebpq', 'wwq',
+                     'rs', 'droeq', 'droaq', 'noaq', 'rnaq', 'pmq', 'atoq', 'ctoq', 'glaq', 'oleq', 'olaq', 'claq',
+                     'blq', 'sgq', 'sue', 'roavol', 'cash', 'cinvest', 'm7', 'm8', 'prccq', 'roeq', 'aeavol', 'ear']]
 
     compq6 = compq6.drop_duplicates()
 
-    return compq6
+    return compq6, temp2
