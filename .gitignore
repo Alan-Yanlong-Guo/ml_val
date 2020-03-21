@@ -5,3 +5,5 @@
 *.iml
 /venv
 
+ccm_data.pkl
+*.pkl
