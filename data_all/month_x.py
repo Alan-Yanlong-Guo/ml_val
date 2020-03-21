@@ -10,7 +10,7 @@ def build_temp3(compq6, temp2):
     compq6.rename(columns={'lpermno': 'permno'}, inplace=True)
     compq6.set_index('permno', inplace=True)
     temp2.set_index('permno', inplace=True)
-    z = compq6.join(temp2, how='left')
+    z = compq6.join(temp2, how='left', lsuffix='_x', rsuffix='_y')
     z.reset_index(inplace=True)
 
     # z = pd.merge(compq6.rename(columns={'lpermno': 'permno'}), temp2, on='permno')
@@ -44,7 +44,7 @@ def build_temp3(compq6, temp2):
     lst.rename(columns={'lpermno': 'permno'}, inplace=True)
     temp3.set_index(['permno', 'month', 'year'], inplace=True)
     lst.set_index(['permno', 'month', 'year'], inplace=True)
-    temp3 = temp3.join(lst, how='left')
+    temp3 = temp3.join(lst, how='left', lsuffix='_x', rsuffix='_y')
     temp3.reset_index(inplace=True)
 
     # temp3 = pd.merge(temp3, lst, how='left', left_on=['permno', 'month', 'year'], right_on=['lpermno', 'month', 'year'])
@@ -125,7 +125,7 @@ def build_temp4(temp3):
 
     temp3.set_index('permno', inplace=True)
     ibessum2b.set_index('permno', inplace=True)
-    temp4 = temp3.join(ibessum2b, how='left')
+    temp4 = temp3.join(ibessum2b, how='left', lsuffix='_x', rsuffix='_y')
     temp4.reset_index(inplace=True)
     # temp4 = pd.merge(temp3, ibessum2b, how='left', on='permno')
 
@@ -151,7 +151,7 @@ def build_temp4(temp3):
 
     temp4.set_index('date', inplace=True)
     ewret.set_index('date', inplace=True)
-    temp4 = temp4.join(ewret, how='left')
+    temp4 = temp4.join(ewret, how='left', lsuffix='_x', rsuffix='_y')
     temp4.reset_index(inplace=True)
 
     # temp4 = pd.merge(temp4, ewret, how='left', on='date')
