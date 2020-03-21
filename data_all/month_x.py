@@ -3,6 +3,7 @@ import numpy as np
 import wrds
 from pandas.tseries.offsets import *
 conn = wrds.Connection(wrds_username='dachxiu')
+from datetime import datetime
 
 
 def build_temp6(compq6, temp2):
@@ -48,6 +49,7 @@ def build_temp6(compq6, temp2):
     # TODO: Check this condition
     # temp3 = temp3[(temp3['siccd'] >= 7000) & (temp3['siccd'] <= 9999)]
 
+    start = datetime.now()
     ibessum = conn.raw_sql(f"""
                             select ticker, cusip, fpedats, statpers, ANNDATS_ACT,
                             numest, ANNTIMS_ACT, medest, meanest, actual, stdev from ibes.statsum_epsus
@@ -56,6 +58,9 @@ def build_temp6(compq6, temp2):
                             and measure='EPS'
                             and (fpedats-statpers)>=0;
                             """)
+    print('Finish building ibessum')
+    print(datetime.now() - start)
+
     ibessum = ibessum[(ibessum['medest'].notna()) & (ibessum['fpedats'].notna())]
     ibessum = ibessum.sort_values(['ticker','cusip','statpers','fpedats'], ascending=[True,True,True,False])
     ibessum = ibessum.sort_values(['ticker','cusip','statpers'])
@@ -65,11 +70,15 @@ def build_temp6(compq6, temp2):
     ibessum.loc[ibessum['meanest']==0, 'disp'] = ibessum['stdev']/0.01
     ibessum['chfeps'] = np.nan
 
+    start = datetime.now()
     ibessum2 = conn.raw_sql(f"""
                             select ticker, cusip, fpedats, statpers, ANNDATS_ACT,
                             numest, ANNTIMS_ACT, medest, meanest, actual, stdev from ibes.statsum_epsus
                             and fpi='0'
                             """)
+    print('Finish building ibessum2')
+    print(datetime.now() - start)
+
     ibessum2 = ibessum2[(ibessum2['medest'].notna()) & (ibessum2['meanest'].notna())]
     ibessum2 = ibessum2.sort_values(['cusip','statpers'])
     ibessum2 = ibessum2.drop_duplicates(['cusip','statpers'])

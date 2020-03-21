@@ -3,7 +3,8 @@ import numpy as np
 import wrds
 from pandas.tseries.offsets import *
 conn = wrds.Connection(wrds_username='dachxiu')
-
+old_err_state = np.seterr(divide='raise')
+ignored_states = np.seterr(**old_err_state)
 
 def lag(df, col, n=1, on='gvkey'):
     return df.groupby(on)[col].shift(n)
@@ -335,8 +336,10 @@ def build_ccm_jun(ccm_data):
                         -((ccm_jun['lagrect'])+(ccm_jun['laginvt'])+(ccm_jun['lagppent'])+(ccm_jun['lagaco'])+(ccm_jun['lagintan'])+(ccm_jun['lagao'])-(ccm_jun['lagap'])\
                           -(ccm_jun['laglco'])-(ccm_jun['laglo'])) -(ccm_jun['rect']-(ccm_jun['lagrect'])+ccm_jun['invt']-(ccm_jun['laginvt'])+ccm_jun['aco']-(ccm_jun['lagaco'])\
                             -(ccm_jun['ap']-(ccm_jun['lagap'])+ccm_jun['lco']-(ccm_jun['laglco'])) -ccm_jun['dp']))/((ccm_jun['at']+(ccm_jun['lagat']))/2)
-    ccm_jun['chdrc']=(ccm_jun['dr']-(ccm_jun['lagdr']))/((ccm_jun['at']+(ccm_jun['lagat']))/2)
 
+    ccm_jun['chdrc']=np.divide(ccm_jun['dr']-ccm_jun['lagdr'], (ccm_jun['at']+ccm_jun['lagat'])/2,
+                               out=np.zeros_like(ccm_jun['dr']-ccm_jun['lagdr']),
+                               where=(ccm_jun['at']+ccm_jun['lagat'])/2 != 0)
 
     ccm_jun['xrd/lagat']=ccm_jun['xrd']/(ccm_jun['lagat'])
     ccm_jun['lag(xrd/lagat)']=ccm_jun.groupby(['permno'])['xrd/lagat'].shift(1)
@@ -524,7 +527,7 @@ def build_ccm_jun(ccm_data):
     ccm_jun['cla']=(ccm_jun['revt']-ccm_jun['cogs']-ccm_jun['xsga']+ccm_jun['xrd']-(ccm_jun['rect']-(ccm_jun['lagrect']))-(ccm_jun['invt']-(ccm_jun['laginvt']))-\
              (ccm_jun['xpp']-(ccm_jun['lagxpp']))+ccm_jun['drc']-(ccm_jun['lagdrc'])+ccm_jun['drlt']-(ccm_jun['lagdrlt'])+ccm_jun['ap']-(ccm_jun['lagap'])+ccm_jun['xacc']-(ccm_jun['lagxacc']))/ccm_jun['lagat']
 
-
+    print('Check 1')
     ccm_jun['i_1']=np.where(ccm_jun['lt']>ccm_jun['at'],1,0)
     ccm_jun['i_2']=np.where((ccm_jun['ni']<0) & (ccm_jun['lagni']<0),1,0)
     ccm_jun['os']=-1.32-0.407*np.log(ccm_jun['at'])+6.03*(ccm_jun['dlc']+ccm_jun['dltt'])/ccm_jun['at']-1.43*(ccm_jun['act']-ccm_jun['lct'])/ccm_jun['at']+0.076*(ccm_jun['lct']/ccm_jun['act'])-1.72*ccm_jun['i_1']-2.37*ccm_jun['ni']/ccm_jun['at']-1.83*(ccm_jun['pi']+ccm_jun['dp'])/ccm_jun['lt']+0.285*ccm_jun['i_2']-0.521*(ccm_jun['ni']+(ccm_jun['lagni']))/((ccm_jun['ni'].abs())+ccm_jun['lagni'].abs())
@@ -563,6 +566,7 @@ def build_ccm_jun(ccm_data):
     ccm_jun['cfp_hxz']=np.where(ccm_jun['oancf'].notna(),(ccm_jun['fopt']-ccm_jun['oancf'])/ccm_jun['dec_me'],ccm_jun['cfp_hxz'])
     ccm_jun['tb_hxz']=ccm_jun['pi']/ccm_jun['ni']
 
+    print('Check 2')
     ccm_jun = ccm_jun.sort_values(['sic2', 'fyear'])
     a=ccm_jun.groupby(['sic2','fyear'])['chpm'].mean()
     a=a.rename('meanchpm')
@@ -627,6 +631,7 @@ def build_ccm_jun(ccm_data):
     a=a.rename('herf')
     ccm_jun=pd.merge(ccm_jun, a, how='left', on=['sic2','fyear'])
 
+    print('Check 3')
     ccm_jun['haraw']=(ccm_jun['at']/ccm_jun['indat'])*(ccm_jun['at']/ccm_jun['indat'])
     a=ccm_jun.groupby(['sic2','fyear'])['haraw'].sum()
     a=a.rename('ha')
@@ -668,6 +673,7 @@ def build_ccm_jun(ccm_data):
 
     ccm_jun = ccm_jun.sort_values(['gvkey', 'datadate'])
 
+    print('Check 4')
     cpi=pd.DataFrame()
     cpi['fyear'] = list(reversed(range(1924, 2017+1)))
     cpi['cpi'] = [246.19,242.23,236.53,229.91,229.17,229.594,
@@ -719,6 +725,7 @@ def build_ccm_jun(ccm_data):
 
     ccm_jun['oca'] = ccm_jun['oc_1']/ccm_jun['at']
 
+    print('Check 5')
     mean_orgcap = ccm_jun.rename(columns={'orgcap':'orgcap_mean'}).groupby(['sic2','fyear'])['orgcap_mean'].mean()
     std_orgcap = ccm_jun.rename(columns={'orgcap':'orgcap_std'}).groupby(['sic2','fyear'])['orgcap_std'].std()
     ccm_jun = pd.merge(ccm_jun, mean_orgcap, on=['sic2','fyear'], how='left')

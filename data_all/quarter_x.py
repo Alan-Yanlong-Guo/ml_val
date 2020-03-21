@@ -2,6 +2,7 @@ import pandas as pd
 import numpy as np
 import wrds
 conn = wrds.Connection(wrds_username='dachxiu')
+from datetime import datetime
 
 
 def build_compq6(ccm_jun):
@@ -16,7 +17,9 @@ def build_compq6(ccm_jun):
     lnk = lnk[(2018 >= lnk['linkdt'].astype(str).str[0:4].astype(int)) | (lnk['linkdt'] == '.B') ]
     lnk = lnk[(lnk['linkenddt'].isna()) | ("1940" <= lnk['linkenddt'].astype(str).str[0:4])]
     lnk = lnk.sort_values(['gvkey','linkdt'])
+    ccm_jun['datadate'] = pd.to_datetime(ccm_jun['datadate'])
     lnk['linkdt'] = pd.to_datetime(lnk['linkdt'])
+    lnk['linkenddt'] = pd.to_datetime(lnk['linkenddt'])
 
     ccm_jun2 = pd.merge(lnk[['gvkey','linkdt','linkenddt','lpermno']], ccm_jun, on='gvkey', how='inner')
     ccm_jun2 = ccm_jun2[(ccm_jun2['linkdt'] <= ccm_jun2['datadate']) | (ccm_jun2['linkdt'] == '.B') ]
@@ -39,9 +42,13 @@ def build_compq6(ccm_jun):
             'pctacc_hxz', 'lev_hxz', 'ep_hxz', 'cfp_hxz', 'tb_hxz', 'salecash', 'salerec', 'pchsaleinv',
             'cashdebt', 'realestate', 'roe', 'operprof', 'mve_f', 'm1','m2','m3','m4','m5','m6']]
 
+    start = datetime.now()
     crsp_msf = conn.raw_sql(f"""
                           select ret, retx, prc, shrout, vol, date, permno from crsp.msf
                           """)
+    print('Finish building crsp_msf')
+    print(datetime.now() - start)
+
     crsp_msf = crsp_msf[crsp_msf['permno'].isin(temp['permno'])]
     crsp_msf['date'] = pd.to_datetime(crsp_msf['date'])
     crsp_msf = crsp_msf.sort_values('date')
@@ -54,10 +61,16 @@ def build_compq6(ccm_jun):
     z = z[(z['date'] >= z['date_l']) & (z['date'] < z['date_u'])]
 
     temp2 = pd.merge(z, temp, on=['permno','datadate'], how='left')
+    start = datetime.now()
     crsp_mseall = conn.raw_sql(f"""
                               select date, permno, exchcd, shrcd, siccd from crsp.mseall 
-                              and exchcd in (1, 2, 3) and shrcd in (10, 11)
+                              where exchcd in (1, 2, 3) 
+                              and exchcd in (1, 2, 3) 
+                              and shrcd in (10, 11)
                               """)
+    print('Finish building crsp_msf')
+    print(datetime.now() - start)
+
     crsp_mseall = crsp_mseall.sort_values(['permno','exchcd','date'])
     mseall_min = crsp_mseall.groupby(['permno','exchcd'])['date'].min().reset_index().rename(columns={'date':'exchstdt'})
     mseall_max = crsp_mseall.groupby(['permno','exchcd'])['date'].max().reset_index().rename(columns={'date':'exchedt'})
@@ -73,9 +86,13 @@ def build_compq6(ccm_jun):
     temp2 = pd.merge(temp2, crsp_mseall, on='permno', how='left')
     temp2 = temp2[((temp2['date']>=temp2['exchstdt']) & (temp2['date']<=temp2['exchedt']))]
 
+    start = datetime.now()
     crsp_mseall_dl = conn.raw_sql(f"""
                                   select dlret, dlstcd, exchcd, date, permno from crsp.mseall
                                   """)
+    print('Finish building crsp_mseall_dl')
+    print(datetime.now() - start)
+
     crsp_mseall_dl['date'] = pd.to_datetime(crsp_mseall_dl['date'])
     temp2 = pd.merge(temp2, crsp_mseall_dl, on=['date', 'permno'])
 
@@ -95,6 +112,7 @@ def build_compq6(ccm_jun):
     temp2['mvel1'] = lag(temp2, 'mve0')
     temp2['pps'] = lag(temp2, 'prc')
 
+    start = datetime.now()
     comp_qtr = conn.raw_sql(f"""
                             select fyearq, fqtr, apdedateq, datadate, pdateq, fdateq, c.gvkey, f.cusip as cnum, 
                             datadate as datadate_q, rdq, sic as sic2,
@@ -104,12 +122,14 @@ def build_compq6(ccm_jun):
                             dpq, oibdpq, cshprq, ajexq, oiadpq, ivaoq, mibq, xintq, drcq, drltq, apq,
                             abs(prccq) as prccq, abs(prccq)*cshoq as mveq, ceqq, seqq, pstkq, atq, ltq, pstkrq
                             from comp.names as c, comp.fundq as f
-                            and f.gvkey = c.gvkey
+                            where f.gvkey = c.gvkey
                             and f.indfmt='INDL'
                             and f.datafmt='STD'
                             and f.popsrc='D'
                             and f.consol='C'
                             """)
+    print('Finish building comp_qtr')
+    print(datetime.now() - start)
 
     comp_qtr.apdedateq = pd.to_datetime(comp_qtr.apdedateq)
     comp_qtr.datadate = pd.to_datetime(comp_qtr.datadate)
@@ -233,7 +253,7 @@ def build_compq6(ccm_jun):
                             select ticker, cusip, fpedats, statpers, ANNDATS_ACT,
                             numest, ANNTIMS_ACT, medest, actual, stdev
                             from ibes.statsum_epsus
-                            and fpi='6'
+                            where fpi='6'
                             and statpers<ANNDATS_ACT
                             and measure='EPS'
                             and (fpedats-statpers)>=0
@@ -273,9 +293,13 @@ def build_compq6(ccm_jun):
     compq5 = compq5[(compq5['lpermno'] != '.') & compq5['gvkey'].notna()]
     compq5 = compq5[(compq5['lpermno'].notna()) & (compq5['rdq'].notna())]
 
+    start = datetime.now()
     crsp_dsf = conn.raw_sql(f"""
                           select vol, ret, permno, date from crsp.dsf as d
                           """)
+    print('Finish building crsp_dsf')
+    print(datetime.now() - start)
+
     crsp_dsf = crsp_dsf[crsp_dsf['permno'].isin(compq5['lpermno'])]
     crsp_dsf['date'] = pd.to_datetime(crsp_dsf['date'])
     crsp_dsf = crsp_dsf.sort_values('date')
