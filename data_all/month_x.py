@@ -6,14 +6,7 @@ conn = wrds.Connection(wrds_username='dachxiu')
 from datetime import datetime
 
 
-def build_temp6(compq6, temp2):
-
-    def lag(df, col, n=1, on='gvkey'):
-        z = df.groupby(on)[col].shift(n)
-        z = z.reset_index()
-        z = z.sort_values('index')
-        z = z.set_index('index')
-        return z[col]
+def build_temp3(compq6, temp2):
 
     z = pd.merge(compq6.rename(columns={'lpermno':'permno'}), temp2, on='permno')
 
@@ -49,6 +42,16 @@ def build_temp6(compq6, temp2):
     # TODO: Check this condition
     # temp3 = temp3[(temp3['siccd'] >= 7000) & (temp3['siccd'] <= 9999)]
 
+    return temp3
+
+
+def build_temp4(temp3):
+    def lag(df, col, n=1, on='gvkey'):
+        z = df.groupby(on)[col].shift(n)
+        z = z.reset_index()
+        z = z.sort_values('index')
+        z = z.set_index('index')
+        return z[col]
     start = datetime.now()
     ibessum = conn.raw_sql(f"""
                             select ticker, cusip, fpedats, statpers, ANNDATS_ACT,
@@ -131,13 +134,16 @@ def build_temp6(compq6, temp2):
     temp4 = temp4.sort_values(['permno','date'])
     temp4['count']=temp4.groupby(['permno']).cumcount()
 
-    def lag(df, col, n=1, on='permno'):
+    return temp4
+
+
+def build_temp6(temp4):
+    def lag(df, col, n=1, on='gvkey'):
         z = df.groupby(on)[col].shift(n)
         z = z.reset_index()
         z = z.sort_values('index')
         z = z.set_index('index')
         return z[col]
-
     temp6 = temp4.copy()
     temp6['chnanalyst'] = temp6['nanalyst'] - lag(temp6, 'nanalyst', 3)
     temp6['mom6m'] = ((1+lag(temp6,'ret',2)) * (1+lag(temp6, 'ret', 3)) * (1+lag(temp6,'ret',4)) * (1+lag(temp6, 'ret', 5)) * (1+lag(temp6,'ret',6))) -1
