@@ -8,10 +8,15 @@ from datetime import datetime
 
 def build_temp3(compq6, temp2):
     compq6.rename(columns={'lpermno': 'permno'}, inplace=True)
+    print(f'{datetime.now()} 1')
     compq6.set_index('permno', inplace=True)
+    print(f'{datetime.now()} 2')
     temp2.set_index('permno', inplace=True)
-    z = compq6.join(temp2, how='left')
+    print(f'{datetime.now()} 3')
+    z = compq6.join(temp2, how='left', on='permno')
+    print(f'{datetime.now()} 4')
     z.reset_index(inplace=True)
+    print(f'{datetime.now()} 5')
 
     # z = pd.merge(compq6.rename(columns={'lpermno': 'permno'}), temp2, on='permno')
 
