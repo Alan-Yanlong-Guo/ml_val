@@ -7,8 +7,13 @@ from datetime import datetime
 
 
 def build_temp3(compq6, temp2):
+    compq6.rename(columns={'lpermno': 'permno'}, inplace=True)
+    compq6.set_index('permno', inplace=True)
+    temp2.set_index('permno', inplace=True)
+    z = compq6.join(temp2, how='left')
+    z.reset_index(inplace=True)
 
-    z = pd.merge(compq6.rename(columns={'lpermno':'permno'}), temp2, on='permno')
+    # z = pd.merge(compq6.rename(columns={'lpermno': 'permno'}), temp2, on='permno')
 
     z['date_l'] = z['date'] + pd.TimedeltaIndex([-10]*len(z), 'M')
     z['date_u'] = z['date'] + pd.TimedeltaIndex([-5]*len(z), 'M')
@@ -35,7 +40,14 @@ def build_temp3(compq6, temp2):
     temp3['year'] = temp3['date'].dt.year
     lst['month'] = lst['rdq'].dt.month
     lst['year'] = lst['rdq'].dt.year
-    temp3 = pd.merge(temp3, lst, how='left', left_on=['permno', 'month', 'year'], right_on=['lpermno', 'month', 'year'])
+
+    lst.rename(columns={'lpermno': 'permno'}, inplace=True)
+    temp3.set_index(['permno', 'month', 'year'], inplace=True)
+    lst.set_index(['permno', 'month', 'year'], inplace=True)
+    temp3 = temp3.join(lst, how='left')
+    temp3.reset_index(inplace=True)
+
+    # temp3 = pd.merge(temp3, lst, how='left', left_on=['permno', 'month', 'year'], right_on=['lpermno', 'month', 'year'])
 
     temp3['ms'] = temp3['m1'] + temp3['m2'] + temp3['m3'] + temp3['m4'] + temp3['m5'] + temp3['m6'] + temp3['m7'] + temp3['m8']
 
@@ -110,7 +122,13 @@ def build_temp4(temp3):
     names = names.drop_duplicates(['permno','ncusip'])
 
     ibessum2b = pd.merge(ibessum2c, names[['permno','ncusip']], how='left', left_on=['cusip'], right_on=['ncusip'])
-    temp4 = pd.merge(temp3, ibessum2b, how='left', on='permno')
+
+    temp3.set_index('permno', inplace=True)
+    ibessum2b.set_index('permno', inplace=True)
+    temp4 = temp3.join(ibessum2b, how='left')
+    temp4.reset_index(inplace=True)
+    # temp4 = pd.merge(temp3, ibessum2b, how='left', on='permno')
+
     temp4['sfe'] = temp4['meanest']/np.abs(temp4['prccq'])
     temp4['statpers'] = pd.to_datetime(temp4['statpers'])
     temp4 = temp4[temp4['statpers'].isna() | (temp4['statpers'] >= (temp4['date'] + pd.TimedeltaIndex([-4]*len(temp4), 'M')) + MonthBegin(-1))]
@@ -130,7 +148,13 @@ def build_temp4(temp3):
 
     ewret = temp4.groupby('date')['ret'].mean().reset_index()
     temp4 = temp4.drop(['ret'], axis=1, inplace=False)
-    temp4 = pd.merge(temp4, ewret, how='left', on=['date'])
+
+    temp4.set_index('date', inplace=True)
+    ewret.set_index('date', inplace=True)
+    temp4 = temp4.join(ewret, how='left')
+    temp4.reset_index(inplace=True)
+
+    # temp4 = pd.merge(temp4, ewret, how='left', on='date')
     temp4 = temp4.sort_values(['permno','date'])
     temp4['count']=temp4.groupby(['permno']).cumcount()
 
