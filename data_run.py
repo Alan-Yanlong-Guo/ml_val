@@ -10,7 +10,7 @@ ccm_jun = build_ccm_jun(ccm_data)
 with open('ccm_jun.pkl', 'wb') as handle:
     pickle.dump(ccm_jun, handle)
 
-
+print('CCM JUN DONE!')
 from data_all.quarter_x import build_compq6
 compq6, temp2 = build_compq6(ccm_jun)
 
