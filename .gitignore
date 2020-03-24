@@ -7,3 +7,4 @@
 
 ccm_data.pkl
 *.pkl
+!/data_all/
