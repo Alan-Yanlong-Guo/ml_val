@@ -1,23 +1,22 @@
 import pandas as pd
 import numpy as np
 import wrds
+from tools.utils import tics_to_permnos
 from pandas.tseries.offsets import *
 conn = wrds.Connection(wrds_username='dachxiu')
-from datetime import datetime
 
 
-def build_temp3(compq6, temp2):
-    compq6.rename(columns={'lpermno': 'permno'}, inplace=True)
-    print(f'{datetime.now()} 1')
-    compq6.set_index('permno', inplace=True)
-    print(f'{datetime.now()} 2')
-    temp2.set_index('permno', inplace=True)
-    print(f'{datetime.now()} 3')
-    z = compq6.join(temp2, how='left', lsuffix='_x', rsuffix='_y')
-    z.reset_index(inplace=True)
-    print(f'{datetime.now()} 5')
+def build_temp6(tics, temp2, compq6):
+    permno = tics_to_permnos(tics)
 
-    # z = pd.merge(compq6.rename(columns={'lpermno': 'permno'}), temp2, on='permno')
+    def lag(df, col, n=1, on='gvkey'):
+        z = df.groupby(on)[col].shift(n)
+        z = z.reset_index()
+        z = z.sort_values('index')
+        z = z.set_index('index')
+        return z[col]
+
+    z = pd.merge(compq6.rename(columns={'lpermno': 'permno'}), temp2, on='permno')
 
     z['date_l'] = z['date'] + pd.TimedeltaIndex([-10]*len(z), 'M')
     z['date_u'] = z['date'] + pd.TimedeltaIndex([-5]*len(z), 'M')
@@ -44,42 +43,22 @@ def build_temp3(compq6, temp2):
     temp3['year'] = temp3['date'].dt.year
     lst['month'] = lst['rdq'].dt.month
     lst['year'] = lst['rdq'].dt.year
-
-    lst.rename(columns={'lpermno': 'permno'}, inplace=True)
-    temp3.set_index(['permno', 'month', 'year'], inplace=True)
-    lst.set_index(['permno', 'month', 'year'], inplace=True)
-    temp3 = temp3.join(lst, how='left', lsuffix='_x', rsuffix='_y')
-    temp3.reset_index(inplace=True)
-
-    # temp3 = pd.merge(temp3, lst, how='left', left_on=['permno', 'month', 'year'], right_on=['lpermno', 'month', 'year'])
+    temp3 = pd.merge(temp3, lst, how='left', left_on=['permno', 'month', 'year'], right_on=['lpermno', 'month', 'year'])
 
     temp3['ms'] = temp3['m1'] + temp3['m2'] + temp3['m3'] + temp3['m4'] + temp3['m5'] + temp3['m6'] + temp3['m7'] + temp3['m8']
 
     # TODO: Check this condition
     # temp3 = temp3[(temp3['siccd'] >= 7000) & (temp3['siccd'] <= 9999)]
 
-    return temp3
-
-
-def build_temp4(temp3):
-    def lag(df, col, n=1, on='gvkey'):
-        z = df.groupby(on)[col].shift(n)
-        z = z.reset_index()
-        z = z.sort_values('index')
-        z = z.set_index('index')
-        return z[col]
-    start = datetime.now()
     ibessum = conn.raw_sql(f"""
                             select ticker, cusip, fpedats, statpers, ANNDATS_ACT,
                             numest, ANNTIMS_ACT, medest, meanest, actual, stdev from ibes.statsum_epsus
+                            where ticker in {tics}
                             and fpi='1'
                             and statpers<ANNDATS_ACT
                             and measure='EPS'
                             and (fpedats-statpers)>=0;
                             """)
-    print('Finish building ibessum')
-    print(datetime.now() - start)
-
     ibessum = ibessum[(ibessum['medest'].notna()) & (ibessum['fpedats'].notna())]
     ibessum = ibessum.sort_values(['ticker','cusip','statpers','fpedats'], ascending=[True,True,True,False])
     ibessum = ibessum.sort_values(['ticker','cusip','statpers'])
@@ -89,15 +68,12 @@ def build_temp4(temp3):
     ibessum.loc[ibessum['meanest']==0, 'disp'] = ibessum['stdev']/0.01
     ibessum['chfeps'] = np.nan
 
-    start = datetime.now()
     ibessum2 = conn.raw_sql(f"""
                             select ticker, cusip, fpedats, statpers, ANNDATS_ACT,
                             numest, ANNTIMS_ACT, medest, meanest, actual, stdev from ibes.statsum_epsus
+                            where ticker in {tics}
                             and fpi='0'
                             """)
-    print('Finish building ibessum2')
-    print(datetime.now() - start)
-
     ibessum2 = ibessum2[(ibessum2['medest'].notna()) & (ibessum2['meanest'].notna())]
     ibessum2 = ibessum2.sort_values(['cusip','statpers'])
     ibessum2 = ibessum2.drop_duplicates(['cusip','statpers'])
@@ -108,6 +84,7 @@ def build_temp4(temp3):
 
     rec = conn.raw_sql(f"""
                        select * from ibes.recdsum
+                       where ticker in {tics}
                        """)
     rec = rec[(rec['statpers'].notna()) & (rec['meanrec'].notna())]
 
@@ -120,19 +97,14 @@ def build_temp4(temp3):
 
     names = conn.raw_sql(f"""
                           select * from crsp.msenames
+                          where permno in {permno}
                           and ncusip != ''
                           """)
     names = names.sort_values(['permno','ncusip'])
     names = names.drop_duplicates(['permno','ncusip'])
 
     ibessum2b = pd.merge(ibessum2c, names[['permno','ncusip']], how='left', left_on=['cusip'], right_on=['ncusip'])
-
-    temp3.set_index('permno', inplace=True)
-    ibessum2b.set_index('permno', inplace=True)
-    temp4 = temp3.join(ibessum2b, how='left', lsuffix='_x', rsuffix='_y')
-    temp4.reset_index(inplace=True)
-    # temp4 = pd.merge(temp3, ibessum2b, how='left', on='permno')
-
+    temp4 = pd.merge(temp3, ibessum2b, how='left', on='permno')
     temp4['sfe'] = temp4['meanest']/np.abs(temp4['prccq'])
     temp4['statpers'] = pd.to_datetime(temp4['statpers'])
     temp4 = temp4[temp4['statpers'].isna() | (temp4['statpers'] >= (temp4['date'] + pd.TimedeltaIndex([-4]*len(temp4), 'M')) + MonthBegin(-1))]
@@ -152,26 +124,17 @@ def build_temp4(temp3):
 
     ewret = temp4.groupby('date')['ret'].mean().reset_index()
     temp4 = temp4.drop(['ret'], axis=1, inplace=False)
-
-    temp4.set_index('date', inplace=True)
-    ewret.set_index('date', inplace=True)
-    temp4 = temp4.join(ewret, how='left', lsuffix='_x', rsuffix='_y')
-    temp4.reset_index(inplace=True)
-
-    # temp4 = pd.merge(temp4, ewret, how='left', on='date')
+    temp4 = pd.merge(temp4, ewret, how='left', on=['date'])
     temp4 = temp4.sort_values(['permno','date'])
     temp4['count']=temp4.groupby(['permno']).cumcount()
 
-    return temp4
-
-
-def build_temp6(temp4):
-    def lag(df, col, n=1, on='gvkey'):
+    def lag(df, col, n=1, on='permno'):
         z = df.groupby(on)[col].shift(n)
         z = z.reset_index()
         z = z.sort_values('index')
         z = z.set_index('index')
         return z[col]
+
     temp6 = temp4.copy()
     temp6['chnanalyst'] = temp6['nanalyst'] - lag(temp6, 'nanalyst', 3)
     temp6['mom6m'] = ((1+lag(temp6,'ret',2)) * (1+lag(temp6, 'ret', 3)) * (1+lag(temp6,'ret',4)) * (1+lag(temp6, 'ret', 5)) * (1+lag(temp6,'ret',6))) -1
