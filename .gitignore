@@ -3,7 +3,9 @@
 *.pyc
 *.xml
 *.iml
+global_settings.py
 /venv
 
 ccm_data.pkl
 *.pkl
+!/data_all/

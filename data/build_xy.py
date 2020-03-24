@@ -119,6 +119,7 @@ def run_build_xy(year, dy, dq):
         y_df = pd.concat([y_df, y_df_], axis=0)
 
     folder = '_'.join(['xy', str(dy), str(dq)])
+    os.mkdir(os.path.join(DATA_FOLDER, folder))
     with open(os.path.join(DATA_FOLDER, folder, '_'.join(['x', str(year)])), 'wb') as handle:
         pickle.dump(x_df, handle)
 
@@ -130,4 +131,3 @@ if __name__ == '__main__':
     years = np.arange(1987, 2017)
     pool = Pool(4)
     pool.map(run_build_xy, years)
-
