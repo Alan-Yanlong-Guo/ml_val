@@ -120,10 +120,10 @@ def run_build_xy(year, dy, dq):
 
     folder = '_'.join(['xy', str(dy), str(dq)])
     os.mkdir(os.path.join(DATA_FOLDER, folder))
-    with open(os.path.join(DATA_FOLDER, folder, '_'.join(['x', str(year)])), 'wb') as handle:
+    with open(os.path.join(DATA_FOLDER, folder, '_'.join(['x', str(year)]) + '.pkl'), 'wb') as handle:
         pickle.dump(x_df, handle)
 
-    with open(os.path.join(DATA_FOLDER, folder, '_'.join(['y', str(year)])), 'wb') as handle:
+    with open(os.path.join(DATA_FOLDER, folder, '_'.join(['y', str(year)]) + '.pkl'), 'wb') as handle:
         pickle.dump(y_df, handle)
 
 
