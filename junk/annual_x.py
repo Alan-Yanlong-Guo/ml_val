@@ -6,6 +6,7 @@ conn = wrds.Connection(wrds_username='dachxiu')
 old_err_state = np.seterr(divide='raise')
 ignored_states = np.seterr(**old_err_state)
 
+
 def lag(df, col, n=1, on='gvkey'):
     return df.groupby(on)[col].shift(n)
 

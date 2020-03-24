@@ -1,27 +1,29 @@
 import pandas as pd
 import numpy as np
 import wrds
-from tools.utils import tic_to_permon
+from tools.utils import tics_to_permnos
 conn = wrds.Connection(wrds_username='dachxiu')
 
 
-def build_compq6(tic, ccm_jun):
-    permno = tic_to_permon(tic)
+def build_compq6(tics, ccm_jun):
+    permno = tics_to_permnos(tics)
 
     def lag(df, col, n=1, on='gvkey'):
         return df.groupby(on)[col].shift(n)
 
     lnk = conn.raw_sql(f"""
                          select * from crsp.ccmxpf_linktable
-                         where lpermno = '{permno}'
+                         where lpermno in {permno}
                          """)
     lnk = lnk[lnk['linktype'].isin(['LU','LC','LD','LF','LN','LO','LS','LX'])]
     lnk = lnk[(2018 >= lnk['linkdt'].astype(str).str[0:4].astype(int)) | (lnk['linkdt'] == '.B') ]
     lnk = lnk[(lnk['linkenddt'].isna()) | ("1940" <= lnk['linkenddt'].astype(str).str[0:4])]
     lnk = lnk.sort_values(['gvkey','linkdt'])
     lnk['linkdt'] = pd.to_datetime(lnk['linkdt'])
+    lnk['linkenddt'] = pd.to_datetime(lnk['linkenddt'])
 
     ccm_jun2 = pd.merge(lnk[['gvkey','linkdt','linkenddt','lpermno']], ccm_jun, on='gvkey', how='inner')
+    ccm_jun2['datadate'] = pd.to_datetime(ccm_jun2['datadate'])
     ccm_jun2 = ccm_jun2[(ccm_jun2['linkdt'] <= ccm_jun2['datadate']) | (ccm_jun2['linkdt'] == '.B') ]
     ccm_jun2 = ccm_jun2[(ccm_jun2['datadate'] <= ccm_jun2['linkenddt']) | (ccm_jun2['linkenddt'].isna())]
     ccm_jun2 = ccm_jun2[(ccm_jun2['lpermno'] != '.') & ccm_jun2['gvkey'].notna()]
@@ -44,7 +46,7 @@ def build_compq6(tic, ccm_jun):
 
     crsp_msf = conn.raw_sql(f"""
                           select ret, retx, prc, shrout, vol, date, permno from crsp.msf
-                          where permno = '{permno}'
+                          where permno in {permno}
                           """)
     crsp_msf = crsp_msf[crsp_msf['permno'].isin(temp['permno'])]
     crsp_msf['date'] = pd.to_datetime(crsp_msf['date'])
@@ -60,7 +62,7 @@ def build_compq6(tic, ccm_jun):
     temp2 = pd.merge(z, temp, on=['permno','datadate'], how='left')
     crsp_mseall = conn.raw_sql(f"""
                               select date, permno, exchcd, shrcd, siccd from crsp.mseall 
-                              where permno = '{permno}'
+                              where permno in {permno}
                               and exchcd in (1, 2, 3) and shrcd in (10, 11)
                               """)
     crsp_mseall = crsp_mseall.sort_values(['permno','exchcd','date'])
@@ -80,7 +82,7 @@ def build_compq6(tic, ccm_jun):
 
     crsp_mseall_dl = conn.raw_sql(f"""
                                   select dlret, dlstcd, exchcd, date, permno from crsp.mseall
-                                  where permno = '{permno}'
+                                  where permno in {permno}
                                   """)
     crsp_mseall_dl['date'] = pd.to_datetime(crsp_mseall_dl['date'])
     temp2 = pd.merge(temp2, crsp_mseall_dl, on=['date', 'permno'])
@@ -110,7 +112,7 @@ def build_compq6(tic, ccm_jun):
                             dpq, oibdpq, cshprq, ajexq, oiadpq, ivaoq, mibq, xintq, drcq, drltq, apq,
                             abs(prccq) as prccq, abs(prccq)*cshoq as mveq, ceqq, seqq, pstkq, atq, ltq, pstkrq
                             from comp.names as c, comp.fundq as f
-                            where f.tic = '{tic}'
+                            where f.tic in {tics}
                             and f.gvkey = c.gvkey
                             and f.indfmt='INDL'
                             and f.datafmt='STD'
@@ -239,7 +241,7 @@ def build_compq6(tic, ccm_jun):
                             select ticker, cusip, fpedats, statpers, ANNDATS_ACT,
                             numest, ANNTIMS_ACT, medest, actual, stdev
                             from ibes.statsum_epsus
-                            where ticker = '{tic}'
+                            where ticker in {tics}
                             and fpi='6'
                             and statpers<ANNDATS_ACT
                             and measure='EPS'
@@ -268,7 +270,7 @@ def build_compq6(tic, ccm_jun):
 
     lnk = conn.raw_sql(f"""
                         select * from crsp.ccmxpf_linktable
-                        where lpermno = '{permno}'
+                        where lpermno in {permno}
                         """)
     lnk = lnk[lnk['linktype'].isin(['LU','LC','LD','LF','LN','LO','LS','LX'])]
     lnk = lnk[(2018 >= lnk['linkdt'].astype(str).str[0:4].astype(int)) | (lnk['linkdt'] == '.B') ]
@@ -283,7 +285,7 @@ def build_compq6(tic, ccm_jun):
 
     crsp_dsf = conn.raw_sql(f"""
                           select vol, ret, permno, date from crsp.dsf as d
-                          where d.permno = '{permno}'
+                          where d.permno in {permno}
                           """)
     crsp_dsf = crsp_dsf[crsp_dsf['permno'].isin(compq5['lpermno'])]
     crsp_dsf['date'] = pd.to_datetime(crsp_dsf['date'])

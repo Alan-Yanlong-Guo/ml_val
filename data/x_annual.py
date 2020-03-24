@@ -1,7 +1,7 @@
 import pandas as pd
 import numpy as np
 import wrds
-from tools.utils import tic_to_permon
+from tools.utils import tics_to_permnos
 from pandas.tseries.offsets import *
 conn = wrds.Connection(wrds_username='dachxiu')
 
@@ -10,7 +10,7 @@ def lag(df, col, n=1, on='gvkey'):
     return df.groupby(on)[col].shift(n)
 
 
-def build_comp(tic):
+def build_comp(tics):
 
     comp = conn.raw_sql(f"""
                         select
@@ -25,7 +25,7 @@ def build_comp(tic):
                         dv, dltis, dltr, dlcch, oibdp, dvpa, tstkp, oiadp, xpp, xacc, re, ppenb,
                         ppenls, capxv, fopt, wcap
                         from comp.names as c, comp.funda as f
-                        where f.tic = '{tic}'
+                        where f.tic in {tics}
                         and f.gvkey=c.gvkey
                         /*get consolidated, standardized, industrial format statements*/
                         and f.indfmt='INDL'
@@ -56,7 +56,7 @@ def build_comp(tic):
     return comp
 
 
-def build_crsp_m(tic):
+def build_crsp_m(tics):
 
     crsp_m = conn.raw_sql(f"""
                           select a.permno, a.permco, a.date, b.ticker, b.ncusip, b.shrcd, b.exchcd, b.siccd,
@@ -66,7 +66,7 @@ def build_crsp_m(tic):
                           on a.permno=b.permno
                           and b.namedt<=a.date
                           and a.date<=b.nameendt
-                          where b.ticker = '{tic}'
+                          where b.ticker in {tics}
                           and b.exchcd between 1 and 3
                           and b.shrcd between 10 and 11
                           """)
@@ -84,13 +84,13 @@ def build_crsp_m(tic):
     return crsp_m
 
 
-def build_dlret(tic):
-    permno = tic_to_permon(tic)
+def build_dlret(tics):
+    permno = tics_to_permnos(tics)
 
     dlret = conn.raw_sql(f"""
                          select permno, dlret, dlstdt
                          from crsp.msedelist
-                         where = '{permno}'
+                         where permno in {permno}
                          """)
     dlret.permno = dlret.permno.astype(int)
 
@@ -150,14 +150,13 @@ def build_crsp(crsp_m, dlret):
     return crsp_jun
 
 
-def build_ccm_data(tic, comp, crsp_jun):
-    permno = tic_to_permon(tic)
+def build_ccm_data(tics, comp, crsp_jun):
+    permno = tics_to_permnos(tics)
 
     ccm = conn.raw_sql(f"""
-                       select gvkey, lpermno as permno, linktype, linkprim,
-                       linkdt, linkenddt
+                       select gvkey, lpermno as permno, linktype, linkprim, linkdt, linkenddt
                        from crsp.ccmxpf_linktable
-                       where permno = '{permno}'
+                       where lpermno in {permno}
                        and substr(linktype,1,1)='L'
                        and linkprim in ('P', 'C')
                        """)
@@ -201,6 +200,7 @@ def build_ccm_data(tic, comp, crsp_jun):
     ccm_data['xsga'] = ccm_data['xsga'].fillna(0)
 
     ccm_data = ccm_data.sort_values(by=['permno', 'date']).drop_duplicates()
+    ccm_data.fillna(value=pd.np.nan, inplace=True)
 
     return ccm_data
 
@@ -708,7 +708,7 @@ def build_ccm_jun(ccm_data):
     orgcap_1 = ccm_jun[['orgcap_1','xsga','cpi']]
     prev_row = None
     for i, row in orgcap_1.iterrows():
-        if(np.isnan(row['orgcap_1'])):
+        if (np.isnan(row['orgcap_1'])) and prev_row is not None:
             row['orgcap_1'] = prev_row['orgcap_1']*(1-0.15)+row['xsga']/row['cpi']
         prev_row = row
     ccm_jun['orgcap_1'] = orgcap_1['orgcap_1']
@@ -720,7 +720,7 @@ def build_ccm_jun(ccm_data):
     oc_1 = ccm_jun[['oc_1','xsga','cpi']]
     prev_row = None
     for i, row in oc_1.iterrows():
-        if(np.isnan(row['oc_1'])):
+        if(np.isnan(row['oc_1'])) and prev_row is not None:
             row['oc_1'] = (1-0.15)*prev_row['oc_1'] + row['xsga']/row['cpi']
         prev_row = row
     ccm_jun['oc_1'] = oc_1['oc_1']

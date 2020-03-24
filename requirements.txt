@@ -3,3 +3,4 @@ numpy
 wrds
 matplotlib
 scipy
+tqdm
