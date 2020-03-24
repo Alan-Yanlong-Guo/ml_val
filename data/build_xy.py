@@ -107,7 +107,7 @@ def build_xy(year, dy, dq, group):
     return x_df, y_df
 
 
-def run_build_xy(year, dy, dq):
+def run_build_xy(year, dy=1, dq=0):
     alphabet = [_ for _ in string.ascii_uppercase]
     print(f'{datetime.datetime.now()} Working on year {year}')
     x_df = pd.DataFrame()
@@ -128,6 +128,6 @@ def run_build_xy(year, dy, dq):
 
 if __name__ == '__main__':
     years = np.arange(1987, 2017)
-    pool = Pool(4)
+    pool = Pool(14)
     pool.map(run_build_xy, years)
 
