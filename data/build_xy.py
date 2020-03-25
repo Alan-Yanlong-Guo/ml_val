@@ -4,7 +4,7 @@ import pandas as pd
 from tools.utils import tics_to_permnos
 from global_settings import DATA_FOLDER, links_df
 from tools.utils import x_filter, horizon
-from global_settings import
+from global_settings import TRAIN_YEAR, CROSS_YEAR, TEST_YEAR
 import numpy as np
 from tqdm import tqdm_notebook
 import string
@@ -130,16 +130,26 @@ def run_build_xy(year, dy=1, dq=0):
         pickle.dump(y_df, handle)
 
 
-def run_idiot(dy, dq):
+def run_idiot(years, set_name, dy=1, dq=0):
     folder = '_'.join(['xy', str(dy), str(dq)])
-    if os.path.exists(os.path.join(DATA_FOLDER, folder)):
-        os.mkdir(os.path.join(DATA_FOLDER, folder))
+    if not os.path.exists(os.path.join(DATA_FOLDER, folder)):
+        raise Exception('Folder not found')
 
-    for year in
-    with open(os.path.join(DATA_FOLDER, folder, '_'.join(['x', str(year)]) + '.pkl'), 'wb') as handle:
+    x_df, y_df = pd.DataFrame(), pd.DataFrame()
+
+    for year in years:
+        with open(os.path.join(DATA_FOLDER, folder, '_'.join(['x', str(year)]) + '.pkl'), 'rb') as handle:
+            x_df_ = pickle.load(handle)
+        with open(os.path.join(DATA_FOLDER, folder, '_'.join(['y', str(year)]) + '.pkl'), 'rb') as handle:
+            y_df_ = pickle.load(handle)
+        x_df = pd.concat([x_df, x_df_], axis=0)
+        y_df = pd.concat([y_df, y_df_], axis=0)
+
+    with open(os.path.join(DATA_FOLDER, folder, '_'.join(['x', str(set_name)]) + '.pkl'), 'wb') as handle:
         pickle.dump(x_df, handle)
 
-    pass
+    with open(os.path.join(DATA_FOLDER, folder, '_'.join(['y', str(set_name)]) + '.pkl'), 'wb') as handle:
+        pickle.dump(y_df, handle)
 
 
 if __name__ == '__main__':
