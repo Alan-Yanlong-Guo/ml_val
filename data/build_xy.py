@@ -4,6 +4,7 @@ import pandas as pd
 from tools.utils import tics_to_permnos
 from global_settings import DATA_FOLDER, links_df
 from tools.utils import x_filter, horizon
+from global_settings import
 import numpy as np
 from tqdm import tqdm_notebook
 import string
@@ -127,6 +128,18 @@ def run_build_xy(year, dy=1, dq=0):
 
     with open(os.path.join(DATA_FOLDER, folder, '_'.join(['y', str(year)]) + '.pkl'), 'wb') as handle:
         pickle.dump(y_df, handle)
+
+
+def run_idiot(dy, dq):
+    folder = '_'.join(['xy', str(dy), str(dq)])
+    if os.path.exists(os.path.join(DATA_FOLDER, folder)):
+        os.mkdir(os.path.join(DATA_FOLDER, folder))
+
+    for year in
+    with open(os.path.join(DATA_FOLDER, folder, '_'.join(['x', str(year)]) + '.pkl'), 'wb') as handle:
+        pickle.dump(x_df, handle)
+
+    pass
 
 
 if __name__ == '__main__':

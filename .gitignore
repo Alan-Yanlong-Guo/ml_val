@@ -9,3 +9,4 @@ global_settings.py
 ccm_data.pkl
 *.pkl
 !/data_all/
+global_settings.py
