@@ -119,7 +119,9 @@ def run_build_xy(year, dy=1, dq=0):
         y_df = pd.concat([y_df, y_df_], axis=0)
 
     folder = '_'.join(['xy', str(dy), str(dq)])
-    os.mkdir(os.path.join(DATA_FOLDER, folder))
+    if not os.path.exists(os.path.join(DATA_FOLDER, folder)):
+        os.mkdir(os.path.join(DATA_FOLDER, folder))
+
     with open(os.path.join(DATA_FOLDER, folder, '_'.join(['x', str(year)]) + '.pkl'), 'wb') as handle:
         pickle.dump(x_df, handle)
 
