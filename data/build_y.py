@@ -62,3 +62,5 @@ if __name__ == '__main__':
     alphabet = [_ for _ in string.ascii_uppercase]
     for group in alphabet:
         run_build_y(group)
+    # pool = Pool(14)
+    # pool.map(run_build_xy, years)
