@@ -15,7 +15,7 @@ def run_build_annual_y(tics, group):
     compa_a = compa_a.iloc[:, 5:]
 
     compa_aoa = compa_a.diff() / compa_a
-    compa_aoa.columns = [col_name + '_yoy' for col_name in compa_a.columns]
+    compa_aoa.columns = [col_name + '_aoa' for col_name in compa_a.columns]
 
     y_a = pd.concat([compa_id_a, compa_a, compa_aoa], axis=1)
 
