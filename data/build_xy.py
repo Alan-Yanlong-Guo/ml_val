@@ -130,14 +130,18 @@ def run_build_xy(year, dy=1, dq=0):
         pickle.dump(y_df, handle)
 
 
-def run_idiot(years, set_name, dy=1, dq=0):
+def build_xy_from_years(years, set_name, dy=1, dq=0, save_file=False):
     folder = '_'.join(['xy', str(dy), str(dq)])
+    save_dir = 'xy_data'
     if not os.path.exists(os.path.join(DATA_FOLDER, folder)):
-        raise Exception('Folder not found')
+        raise Exception('Preprocessed xy data folder not found')
+    if not os.path.exists(os.path.join(DATA_FOLDER, save_dir)):
+        os.mkdir(os.path.join(DATA_FOLDER, save_dir))
 
     x_df, y_df = pd.DataFrame(), pd.DataFrame()
 
     for year in years:
+        print(year)
         with open(os.path.join(DATA_FOLDER, folder, '_'.join(['x', str(year)]) + '.pkl'), 'rb') as handle:
             x_df_ = pickle.load(handle)
         with open(os.path.join(DATA_FOLDER, folder, '_'.join(['y', str(year)]) + '.pkl'), 'rb') as handle:
@@ -145,14 +149,16 @@ def run_idiot(years, set_name, dy=1, dq=0):
         x_df = pd.concat([x_df, x_df_], axis=0)
         y_df = pd.concat([y_df, y_df_], axis=0)
 
-    with open(os.path.join(DATA_FOLDER, folder, '_'.join(['x', str(set_name)]) + '.pkl'), 'wb') as handle:
-        pickle.dump(x_df, handle)
+    if save_file:
+        with open(os.path.join(DATA_FOLDER, save_dir, '_'.join(['x', str(set_name)]) + '.pkl'), 'wb') as handle:
+            pickle.dump(x_df, handle)
 
-    with open(os.path.join(DATA_FOLDER, folder, '_'.join(['y', str(set_name)]) + '.pkl'), 'wb') as handle:
-        pickle.dump(y_df, handle)
+        with open(os.path.join(DATA_FOLDER, save_dir, '_'.join(['y', str(set_name)]) + '.pkl'), 'wb') as handle:
+            pickle.dump(y_df, handle)
 
 
 if __name__ == '__main__':
-    years = np.arange(1987, 2017)
-    pool = Pool(14)
-    pool.map(run_build_xy, years)
+    # years = np.arange(1987, 2017)
+    # pool = Pool(14)
+    # pool.map(run_build_xy, years)
+    run_build_xy(1996)
