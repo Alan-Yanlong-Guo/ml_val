@@ -5,7 +5,7 @@ import os
 from global_settings import DATA_FOLDER, links_df
 import pickle
 import string
-from tools.utils import tics_to_permnos, y_filter
+from tools.utils import y_filter
 
 
 def run_build_annual_y(tics, group):
@@ -40,11 +40,15 @@ def run_build_annual_y(tics, group):
 def run_build_quarter_y(tics, group):
     compq = build_compq(tics)
     permnos = set(compq['permno'].tolist())
-    compq_q = compq.set_index(['permno', 'fyearq', 'fqtr'], inplace=False)
-    compq_q = compq_q.sort_index(inplace=False)
+    compq_q = compq.set_index(['permno', 'fyearq', 'fqtr'], drop=False, inplace=True)
+    compq_q = compq_q.sort_index(inplace=True)
     compq_id = compq_q.iloc[:, :5]
     compq_q = compq_q.iloc[:, 5:]
     compq_q = y_filter(compq_q, 'quarter')
+
+    compq_a = compq.set_index(['permno', 'fyearq', 'fqtr'],  drop=False, inplace=False)
+    compq_a = compq_a.sort_index(inplace=False)
+    compq_a.drop(['permno', 'fyearq'], axis=1, inplace=True)
 
     compq_qoq = pd.DataFrame()
     for permno in permnos:
@@ -52,16 +56,16 @@ def run_build_quarter_y(tics, group):
         compq_q_s1_ = compq_q_.shift(1)
         compq_qoq_ = (compq_q_ - compq_q_s1_) / compq_q_s1_
         compq_qoq = pd.concat([compq_qoq, compq_qoq_], axis=0)
+    y_q = pd.concat([compq_id, compq_q], axis=1)
+    y_q = pd.merge(y_q, compq_qoq, left_index=True, right_index=True)
 
     compq_aoa = pd.DataFrame()
     compq_5o5 = pd.DataFrame()
-    for quarter in [1, 2, 3, 4]:
-        compq_a = compq[compq['fqtr'] == quarter]
-        compq_a = compq_a.set_index(['permno', 'fyearq', 'fqtr'], inplace=False)
-        compq_a = compq_a.sort_index(inplace=False)
-        compq_a = compq_a.iloc[:, 5:]
-        compq_a = y_filter(compq_a, 'quarter')
-        for permno in permnos:
+    for permno in permnos:
+        for quarter in [1, 2, 3, 4]:
+            compq_a = compq_a[compq_a['fqtr'] == quarter]
+            compq_a = compq_a.iloc[:, 5:]
+            compq_a = y_filter(compq_a, 'quarter')
             compq_a_ = compq_a.loc[[permno], :]
             compq_a_s1_ = compq_a_.shift(1)
             compq_a_s5_ = compq_a_.shift(5)
@@ -75,7 +79,7 @@ def run_build_quarter_y(tics, group):
     compq_aoa.columns = [col_names + '_aoa' for col_names in compq_a.columns]
     compq_5o5.columns = [col_names + '_5o5' for col_names in compq_a.columns]
     compq_a5oa5 = pd.concat([compq_aoa, compq_5o5], axis=1)
-    y_q = pd.concat([compq_id, compq_q, compq_qoq], axis=1)
+
     y_q = pd.merge(y_q, compq_a5oa5, left_index=True, right_index=True)
 
     with open(os.path.join(DATA_FOLDER, 'quarter_y', '_'.join(['y', group]) + '.pkl'), 'wb') as handle:
