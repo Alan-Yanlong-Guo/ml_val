@@ -22,7 +22,6 @@ def run_build_ccm_jun(tics, group):
     ccm_jun = ccm_jun.sort_index(inplace=False)
     ccm_jun_id = ccm_jun.iloc[:, :5]
     ccm_jun = ccm_jun.iloc[:, 5:]
-    ccm_jun = x_filter(ccm_jun, 'annual')
 
     ccm_jun = pd.concat([ccm_jun_id, ccm_jun], axis=1)
 
@@ -40,7 +39,6 @@ def run_build_compq6(tics, group, ccm_jun):
     compq6 = compq6.sort_index(inplace=False)
     compq6_id = compq6.iloc[:, :5]
     compq6 = compq6.iloc[:, 5:]
-    compq6 = x_filter(compq6, 'quarter')
 
     compq6 = pd.concat([compq6_id, compq6], axis=1)
 
@@ -56,7 +54,6 @@ def run_build_temp6(tics, group, temp2, compq6):
     temp6 = temp6.sort_index(inplace=False)
     temp6_id = temp6.iloc[:, :5]
     temp6 = temp6.iloc[:, 5:]
-    temp6 = x_filter(temp6, 'month')
 
     temp6 = pd.concat([temp6_id, temp6], axis=1)
 
