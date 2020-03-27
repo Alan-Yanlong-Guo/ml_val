@@ -21,15 +21,19 @@ def load_x_y(group):
 
     with open(os.path.join(DATA_FOLDER, 'annual_x', '_'.join(['x', group]) + '.pkl'), 'rb') as handle:
         x_annual = pickle.load(handle)
-        x_annual = x_filter(x_annual, 'annual')
+        x_annual['fqtr'] = 4
+        x_annual.set_index(['permno', 'fyear', 'fqtr'], inplace=True).sort_index(inplace=True)
+        x_annual = pd.concat([x_annual.iloc[:, :5], x_filter(x_annual.iloc[:, 5:], 'annual')], axis=1)
 
     with open(os.path.join(DATA_FOLDER, 'quarter_x', '_'.join(['x', group]) + '.pkl'), 'rb') as handle:
         x_quarter = pickle.load(handle)
-        x_quarter = x_quarter(x_quarter, 'quarter')
+        x_quarter.set_index(['permno', 'fyear', 'fqtr'], inplace=True).sort_index(inplace=True)
+        x_quarter = pd.concat([x_quarter.iloc[:, :5], x_filter(x_quarter.iloc[:, 5:], 'quarter')], axis=1)
 
     with open(os.path.join(DATA_FOLDER, 'month_x', '_'.join(['x', group]) + '.pkl'), 'rb') as handle:
         x_month = pickle.load(handle)
-        x_month = x_month(x_month, 'month')
+        x_month.set_index(['permno', 'year', 'month'], inplace=True).sort_index(inplace=True)
+        x_month = pd.concat([x_month.iloc[:, :5], x_filter(x_month.iloc[:, 5:], 'month')], axis=1)
 
     return y_annual, y_quarter, x_annual, x_quarter, x_month
 
