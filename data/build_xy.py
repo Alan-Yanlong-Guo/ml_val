@@ -3,7 +3,7 @@ import os
 import pandas as pd
 from tools.utils import tics_to_permnos
 from global_settings import DATA_FOLDER, links_df
-from tools.utils import x_filter, y_filter, horizon
+from tools.utils import horizon
 from global_settings import TRAIN_YEAR, CROSS_YEAR, TEST_YEAR
 import numpy as np
 import string
@@ -42,7 +42,6 @@ def line_x(permno, x_annual, x_quarter, x_month, x_ay, x_qy, x_qq, x_my, x_mm):
     x_month = x_month.iloc[:, 5:]
 
     # Filter Data
-    x_annual, x_quarter, x_month = x_filter(x_annual, x_quarter, x_month)
     x = pd.concat([x_index.reset_index(drop=True), x_annual.reset_index(drop=True), x_quarter.reset_index(drop=True),
                    x_month.reset_index(drop=True)], axis=1)
 
@@ -66,7 +65,6 @@ def line_y(permno, y_annual, y_quarter, y_ay, y_qy, y_qq, date):
     y_quarter = y_quarter.iloc[:, 5:]
 
     # Filter Data
-    y_annual, y_quarter = y_filter(y_annual, y_quarter)
     y = pd.concat([y_index.reset_index(drop=True), y_annual.reset_index(drop=True), y_quarter.reset_index(drop=True)],
                   axis=1)
 

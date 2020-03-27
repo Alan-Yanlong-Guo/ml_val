@@ -50,30 +50,35 @@ def horizon(y_ay, y_qy, y_qq, y_my, y_mm, dy, dq):
     return x_ay, x_qy, x_qq, x_my, x_mm
 
 
-def x_filter(x_annual, x_quarter, x_month):
-    x_annual = x_annual[['absacc', 'acc', 'agr', 'bm_ia', 'cashdebt', 'cashpr', 'cfp', 'cfp_ia', 'chatoia',
-                         'chcsho', 'chempia', 'chinv', 'chpmia', 'convind', 'currat', 'currat', 'depr', 'divi',
-                         'divo', 'dy', 'egr', 'ep', 'gma', 'grcapx', 'grltnoa', 'herf', 'hire', 'invest', 'lev',
-                         'lgr', 'mve_ia', 'operprof', 'orgcap', 'pchcapx_ia', 'pchcurrat', 'pchdepr',
-                         'pchgm_pchsale', 'pchquick', 'pchsale_pchinvt', 'pchsale_pchrect', 'pchsale_pchxsga',
-                         'pchsaleinv', 'pctacc', 'ps', 'quick', 'rd', 'rd_mve', 'rd_sale', 'realestate', 'roic',
-                         'salecash', 'saleinv', 'salerec', 'secured', 'securedind', 'sgr', 'sin', 'sp', 'tang', 'tb']]
-    x_quarter = x_quarter[['aeavol', 'cash', 'chtx', 'cinvest', 'ear', 'roaq', 'roavol', 'roeq', 'rsup', 'stdacc', 'stdcf']]
-    x_month = x_month[['chmom', 'dolvol', 'mom12m', 'mom1m', 'mom36m', 'mom6m', 'mvel1', 'turn']]
+def x_filter(x, filter_type):
+    if filter_type == 'annual':
+        filter_list = ['absacc', 'acc', 'agr', 'bm_ia', 'cashdebt', 'cashpr', 'cfp', 'cfp_ia', 'chatoia',
+                       'chcsho', 'chempia', 'chinv', 'chpmia', 'convind', 'currat', 'currat', 'depr', 'divi',
+                       'divo', 'dy', 'egr', 'ep', 'gma', 'grcapx', 'grltnoa', 'herf', 'hire', 'invest', 'lev',
+                       'lgr', 'mve_ia', 'operprof', 'orgcap', 'pchcapx_ia', 'pchcurrat', 'pchdepr',
+                       'pchgm_pchsale', 'pchquick', 'pchsale_pchinvt', 'pchsale_pchrect', 'pchsale_pchxsga',
+                       'pchsaleinv', 'pctacc', 'ps', 'quick', 'rd', 'rd_mve', 'rd_sale', 'realestate', 'roic',
+                       'salecash', 'saleinv', 'salerec', 'secured', 'securedind', 'sgr', 'sin', 'sp', 'tang', 'tb']
+    elif filter_type == 'quarter':
+        filter_list = ['aeavol', 'cash', 'chtx', 'cinvest', 'ear', 'roaq', 'roavol', 'roeq', 'rsup', 'stdacc', 'stdcf']
+    elif filter_type == 'month':
+        filter_list = ['chmom', 'dolvol', 'mom12m', 'mom1m', 'mom36m', 'mom6m', 'mvel1', 'turn']
+    else:
+        raise Exception('Invalid Filter Type')
+    x = x[filter_list]
 
-    return x_annual, x_quarter, x_month
+    return x
 
 
-def y_filter(y_annual, y_quarter):
-    annual_list = ['revt', 'ebit', 'ebitda', 're', 'epspi', 'gma', 'operprof', 'quick', 'currat',
-                         'cashrrat', 'cftrr', 'dpr', 'pe', 'pb', 'roe', 'roa', 'roic', 'cod', 'capint', 'lev']
-    annual_list_aoa = [_ + '_aoa' for _ in annual_list]
-    y_annual = y_annual[annual_list + annual_list_aoa]
+def y_filter(y, filter_type):
+    if filter_type == 'annual':
+        filter_list = ['revt', 'ebit', 'ebitda', 're', 'epspi', 'gma', 'operprof', 'quick', 'currat',
+                       'cashrrat', 'cftrr', 'dpr', 'pe', 'pb', 'roe', 'roa', 'roic', 'cod', 'capint', 'lev']
+    elif filter_type == 'quarter':
+        filter_list = ['revtq', 'req', 'epspiq', 'quickq', 'curratq', 'cashrratq', 'peq', 'roeq', 'roaq']
+    else:
+        raise Exception('Invalid Filter Type')
 
-    quarter_list = ['revtq', 'req', 'epspiq', 'quickq', 'curratq', 'cashrratq', 'peq', 'roeq', 'roaq']
-    quarter_list_aoa = [_ + '_aoa' for _ in quarter_list]
-    quarter_list_qoq = [_ + '_qoq' for _ in quarter_list]
+    y = y[filter_list]
 
-    y_quarter = y_quarter[quarter_list + quarter_list_aoa + quarter_list_qoq]
-
-    return y_annual, y_quarter
+    return y

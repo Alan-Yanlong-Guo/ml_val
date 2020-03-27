@@ -43,7 +43,5 @@ def build_compa(tics):
     compa['capint'] = compa['capx'] / compa['at']
     compa['lev'] = (compa['dltt'] + compa['dlc']) / compa['seq']
 
-    print(compa)
-
     return compa
 
