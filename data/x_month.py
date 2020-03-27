@@ -1,6 +1,5 @@
 import pandas as pd
 import numpy as np
-import wrds
 from tools.utils import tics_to_permnos
 from pandas.tseries.offsets import *
 from global_settings import conn

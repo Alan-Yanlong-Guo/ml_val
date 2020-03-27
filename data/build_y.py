@@ -40,15 +40,11 @@ def run_build_annual_y(tics, group):
 def run_build_quarter_y(tics, group):
     compq = build_compq(tics)
     permnos = set(compq['permno'].tolist())
-    compq_q = compq.set_index(['permno', 'fyearq', 'fqtr'], drop=True, inplace=False)
+    compq_q = compq.set_index(['permno', 'fyearq', 'fqtr'], inplace=False)
     compq_q = compq_q.sort_index(inplace=False)
     compq_id = compq_q.iloc[:, :5]
     compq_q = compq_q.iloc[:, 5:]
     compq_q = y_filter(compq_q, 'quarter')
-
-    compq_a = compq.set_index(['permno', 'fyearq', 'fqtr'],  drop=False, inplace=False)
-    compq_a = compq_a.sort_index(inplace=False)
-    compq_a.drop(['permno', 'fyearq'], axis=1, inplace=True)
 
     compq_qoq = pd.DataFrame()
     for permno in permnos:
@@ -61,19 +57,24 @@ def run_build_quarter_y(tics, group):
 
     compq_aoa = pd.DataFrame()
     compq_5o5 = pd.DataFrame()
-    for permno in permnos:
-        for quarter in [1, 2, 3, 4]:
-            compq_a = compq_a[compq_a['fqtr'] == quarter]
-            compq_a = compq_a.iloc[:, 5:]
-            compq_a = y_filter(compq_a, 'quarter')
-            compq_a_ = compq_a.loc[[permno], :]
-            compq_a_s1_ = compq_a_.shift(1)
-            compq_a_s5_ = compq_a_.shift(5)
-            compq_aoa_ = (compq_a_ - compq_a_s1_) / compq_a_s1_
-            compq_5o5_ = (compq_a_ - compq_a_s5_) / compq_a_s5_
-            compq_5o5_ = compq_5o5_.pow(1 / 5)
-            compq_aoa = pd.concat([compq_aoa, compq_aoa_], axis=0)
-            compq_5o5 = pd.concat([compq_5o5, compq_5o5_], axis=0)
+    for quarter in [1, 2, 3, 4]:
+        compq_a = compq[compq['fqtr'] == quarter]
+        compq_a = compq_a.set_index(['permno', 'fyearq', 'fqtr'], inplace=False)
+        compq_a = compq_a.sort_index(inplace=False)
+        compq_a = compq_a.iloc[:, 5:]
+        compq_a = y_filter(compq_a, 'quarter')
+        for permno in permnos:
+            try:
+                compq_a_ = compq_a.loc[[permno], :]
+                compq_a_s1_ = compq_a_.shift(1)
+                compq_a_s5_ = compq_a_.shift(5)
+                compq_aoa_ = (compq_a_ - compq_a_s1_) / compq_a_s1_
+                compq_5o5_ = (compq_a_ - compq_a_s5_) / compq_a_s5_
+                compq_5o5_ = compq_5o5_.pow(1 / 5)
+                compq_aoa = pd.concat([compq_aoa, compq_aoa_], axis=0)
+                compq_5o5 = pd.concat([compq_5o5, compq_5o5_], axis=0)
+            except KeyError:
+                pass
 
     compq_qoq.columns = [col_names + '_qoq' for col_names in compq_q.columns]
     compq_aoa.columns = [col_names + '_aoa' for col_names in compq_a.columns]
