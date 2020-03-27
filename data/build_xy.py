@@ -30,7 +30,7 @@ def load_x_y(group):
     return y_annual, y_quarter, x_annual, x_quarter, x_month
 
 
-def line_x(permno, x_annual, x_quarter, x_month, x_ay, x_qy, x_qq, x_my, x_mm):
+def line_x(permno, x_annual, x_quarter, x_month, y_annual, x_ay, x_qy, x_qq, x_my, x_mm):
     # Slice Data
     x_annual = x_annual.loc[[(permno, x_ay, 4)], :]
     x_annual = x_annual.iloc[:, 5:]
@@ -41,9 +41,13 @@ def line_x(permno, x_annual, x_quarter, x_month, x_ay, x_qy, x_qq, x_my, x_mm):
     x_month = x_month.loc[[(permno, x_my, x_mm)], :]
     x_month = x_month.iloc[:, 5:]
 
+    y_annual = y_annual.loc[[(permno, x_ay, 4)], :]
+    y_annual = y_annual.iloc[:, 5:]
+
     # Filter Data
     x = pd.concat([x_index.reset_index(drop=True), x_annual.reset_index(drop=True), x_quarter.reset_index(drop=True),
                    x_month.reset_index(drop=True)], axis=1)
+    x = pd.merge(x, y_annual, left_index=True, right_index=True)
 
     return x
 
@@ -99,7 +103,7 @@ def build_xy(year, dy, dq, group):
             try:
                 y, y_my, y_mm = line_y(permno, y_annual, y_quarter, y_ay, y_qy, y_qq, date)
                 x_ay, x_qy, x_qq, x_my, x_mm = horizon(y_ay, y_qy, y_qq, y_my, y_mm, dy, dq)
-                x = line_x(permno, x_annual, x_quarter, x_month, x_ay, x_qy, x_qq, x_my, x_mm)
+                x = line_x(permno, x_annual, x_quarter, x_month, y_annual, x_ay, x_qy, x_qq, x_my, x_mm)
 
                 if np.shape(x)[0] == 1 and np.shape(y)[0] == 1:
                     x_df_ = pd.concat([x_df_, x], axis=0)

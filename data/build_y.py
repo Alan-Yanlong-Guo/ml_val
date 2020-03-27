@@ -73,8 +73,9 @@ def run_build_quarter_y(tics, group):
     compq_qoq.columns = [col_names + '_qoq' for col_names in compq_q.columns]
     compq_aoa.columns = [col_names + '_aoa' for col_names in compq_a.columns]
     compq_5o5.columns = [col_names + '_5o5' for col_names in compq_a.columns]
+    compq_a5oa5 = pd.concat([compq_aoa, compq_5o5], axis=1)
     y_q = pd.concat([compq_id, compq_q, compq_qoq], axis=1)
-    y_q = pd.merge(y_q, compq_aoa, compq_5o5, left_index=True, right_index=True)
+    y_q = pd.merge(y_q, compq_a5oa5, left_index=True, right_index=True)
 
     with open(os.path.join(DATA_FOLDER, 'quarter_y', '_'.join(['y', group]) + '.pkl'), 'wb') as handle:
         pickle.dump(y_q, handle)
