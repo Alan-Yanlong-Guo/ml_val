@@ -4,6 +4,7 @@ import wrds
 from tools.utils import tics_to_permnos
 from pandas.tseries.offsets import *
 conn = wrds.Connection(wrds_username='dachxiu')
+conn.create_pgpass_file()
 
 
 def lag(df, col, n=1, on='gvkey'):

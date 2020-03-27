@@ -74,4 +74,5 @@ def run_build_x(group):
 if __name__ == '__main__':
     alphabet = [_ for _ in string.ascii_uppercase]
     for group in alphabet:
+        print(group)
         run_build_x(group)

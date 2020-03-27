@@ -3,6 +3,7 @@ import numpy as np
 import wrds
 from tools.utils import tics_to_permnos
 conn = wrds.Connection(wrds_username='dachxiu')
+conn.create_pgpass_file()
 
 
 def build_compq6(tics, ccm_jun):
