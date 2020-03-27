@@ -27,6 +27,8 @@ def load_x_y(group):
 
     with open(os.path.join(DATA_FOLDER, 'quarter_x', '_'.join(['x', group]) + '.pkl'), 'rb') as handle:
         x_quarter = pickle.load(handle)
+        x_quarter.rename(columns={'lpermno': 'permno'}, inplace=True)
+        x_quarter.rename(columns={'fyearq': 'fyear'}, inplace=True)
         x_quarter.set_index(['permno', 'fyear', 'fqtr'], inplace=True).sort_index(inplace=True)
         x_quarter = pd.concat([x_quarter.iloc[:, :5], x_filter(x_quarter.iloc[:, 5:], 'quarter')], axis=1)
 

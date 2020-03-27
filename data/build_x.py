@@ -2,7 +2,6 @@ from data.x_annual import build_comp, build_crsp_m, build_dlret, build_crsp, bui
 from data.x_quarter import build_compq6
 from data.x_month import build_temp6
 from global_settings import DATA_FOLDER, links_df
-import pandas as pd
 import os
 import pickle
 import string
@@ -25,8 +24,6 @@ def run_build_ccm_jun(tics, group):
 
 def run_build_compq6(tics, group, ccm_jun):
     compq6, temp2 = build_compq6(tics, ccm_jun)
-    compq6.rename(columns={'lpermno': 'permno'}, inplace=True)
-    compq6.rename(columns={'fyearq': 'fyear'}, inplace=True)
 
     with open(os.path.join(DATA_FOLDER, 'quarter_x', '_'.join(['x', group]) + '.pkl'), 'wb') as handle:
         pickle.dump(compq6, handle)
