@@ -20,12 +20,12 @@ def run_build_annual_y(tics, group):
     compa_aoa = pd.DataFrame()
     compa_5o5 = pd.DataFrame()
     for permno in permnos:
-        print(permno)
         compa_a_ = compa_a.loc[[permno], :]
         compa_a_s1_ = compa_a_.shift(1)
         compa_a_s5_ = compa_a_.shift(5)
         compa_aoa_ = (compa_a_ - compa_a_s1_) / compa_a_s1_
         compa_5o5_ = (compa_a_ - compa_a_s5_) / compa_a_s5_
+        compa_5o5_ = compa_5o5_.pow(1/5)
         compa_aoa = pd.concat([compa_aoa, compa_aoa_], axis=0)
         compa_5o5 = pd.concat([compa_5o5, compa_5o5_], axis=0)
     compa_aoa.columns = [col_names + '_aoa' for col_names in compa_a.columns]
@@ -63,10 +63,12 @@ def run_build_quarter_y(tics, group):
         compq_a = y_filter(compq_a, 'quarter')
         for permno in permnos:
             compq_a_ = compq_a.loc[[permno], :]
+            print(compq_a_)
             compq_a_s1_ = compq_a_.shift(1)
             compq_a_s5_ = compq_a_.shift(5)
             compq_aoa_ = (compq_a_ - compq_a_s1_) / compq_a_s1_
             compq_5o5_ = (compq_a_ - compq_a_s5_) / compq_a_s5_
+            compq_5o5_ = compq_5o5_.pow(1 / 5)
             compq_aoa = pd.concat([compq_aoa, compq_aoa_], axis=0)
             compq_5o5 = pd.concat([compq_5o5, compq_5o5_], axis=0)
 
