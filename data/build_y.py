@@ -40,8 +40,8 @@ def run_build_annual_y(tics, group):
 def run_build_quarter_y(tics, group):
     compq = build_compq(tics)
     permnos = set(compq['permno'].tolist())
-    compq_q = compq.set_index(['permno', 'fyearq', 'fqtr'], drop=False, inplace=True)
-    compq_q = compq_q.sort_index(inplace=True)
+    compq_q = compq.set_index(['permno', 'fyearq', 'fqtr'], drop=False, inplace=False)
+    compq_q = compq_q.sort_index(inplace=False)
     compq_id = compq_q.iloc[:, :5]
     compq_q = compq_q.iloc[:, 5:]
     compq_q = y_filter(compq_q, 'quarter')
