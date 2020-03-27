@@ -9,6 +9,7 @@ import numpy as np
 import string
 import datetime
 from multiprocessing import Pool
+from tools.utils import x_filter
 
 
 def load_x_y(group):
@@ -20,12 +21,15 @@ def load_x_y(group):
 
     with open(os.path.join(DATA_FOLDER, 'annual_x', '_'.join(['x', group]) + '.pkl'), 'rb') as handle:
         x_annual = pickle.load(handle)
+        x_annual = x_filter(x_annual, 'annual')
 
     with open(os.path.join(DATA_FOLDER, 'quarter_x', '_'.join(['x', group]) + '.pkl'), 'rb') as handle:
         x_quarter = pickle.load(handle)
+        x_quarter = x_quarter(x_annual, 'quarter')
 
     with open(os.path.join(DATA_FOLDER, 'month_x', '_'.join(['x', group]) + '.pkl'), 'rb') as handle:
         x_month = pickle.load(handle)
+        x_month = x_month(x_annual, 'month')
 
     return y_annual, y_quarter, x_annual, x_quarter, x_month
 
