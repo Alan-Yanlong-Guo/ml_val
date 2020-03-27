@@ -1,9 +1,7 @@
 import pandas as pd
 import numpy as np
-import wrds
 from tools.utils import tic_to_permno
-conn = wrds.Connection(wrds_username='dachxiu')
-conn.create_pgpass_file()
+from global_settings import conn
 
 
 def build_compq(tics):
