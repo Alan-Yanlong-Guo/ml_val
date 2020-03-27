@@ -63,7 +63,6 @@ def run_build_quarter_y(tics, group):
         compq_a = y_filter(compq_a, 'quarter')
         for permno in permnos:
             compq_a_ = compq_a.loc[[permno], :]
-            print(compq_a_)
             compq_a_s1_ = compq_a_.shift(1)
             compq_a_s5_ = compq_a_.shift(5)
             compq_aoa_ = (compq_a_ - compq_a_s1_) / compq_a_s1_

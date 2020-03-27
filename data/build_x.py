@@ -72,7 +72,6 @@ def run_build_x(group):
 
 
 if __name__ == '__main__':
-    pool = Pool(4)
     alphabet = [_ for _ in string.ascii_uppercase]
     for group in alphabet:
         run_build_x(group)
