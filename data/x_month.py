@@ -4,7 +4,7 @@ import wrds
 from tools.utils import tics_to_permnos
 from pandas.tseries.offsets import *
 conn = wrds.Connection(wrds_username='dachxiu')
-
+conn.create_pgpass_file()
 
 def build_temp6(tics, temp2, compq6):
     permno = tics_to_permnos(tics)
