@@ -65,14 +65,15 @@ def x_filter(x_annual, x_quarter, x_month):
 
 
 def y_filter(y_annual, y_quarter):
-    annual_list = ['revt', 'ebit', 'ebitda', 're', 'epspi', 'eps', 'gma', 'operprof', 'quick', 'currat',
+    annual_list = ['revt', 'ebit', 'ebitda', 're', 'epspi', 'gma', 'operprof', 'quick', 'currat',
                          'cashrrat', 'cftrr', 'dpr', 'pe', 'pb', 'roe', 'roa', 'roic', 'cod', 'capint', 'lev']
-    annual_list_aoa = [_ + 'aoa' for _ in annual_list]
+    annual_list_aoa = [_ + '_aoa' for _ in annual_list]
     y_annual = y_annual[annual_list + annual_list_aoa]
 
-    quarter_list = ['revtq', 'req', 'epspid', 'quickq', 'curratq', 'cashrratq', 'peq', 'roeq', 'roaq']
-    quarter_list_aoa = [_ + 'aoa' for _ in quarter_list]
-    quarter_list_qoq = [_ + 'qoq' for _ in quarter_list]
+    quarter_list = ['revtq', 'req', 'epspiq', 'quickq', 'curratq', 'cashrratq', 'peq', 'roeq', 'roaq']
+    quarter_list_aoa = [_ + '_aoa' for _ in quarter_list]
+    quarter_list_qoq = [_ + '_qoq' for _ in quarter_list]
+
     y_quarter = y_quarter[quarter_list + quarter_list_aoa + quarter_list_qoq]
 
     return y_annual, y_quarter

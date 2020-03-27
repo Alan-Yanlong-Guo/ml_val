@@ -60,7 +60,6 @@ def line_y(permno, y_annual, y_quarter, y_ay, y_qy, y_qq, date):
         y_annual = y_annual.loc[[(permno, y_ay-1, 4)], :]
 
     y_annual = y_annual.iloc[:, 5:]
-
     y_quarter = y_quarter.loc[[(permno, y_qy, y_qq)], :]
     y_index = y_quarter.iloc[:, :5]
     y_my, y_mm = y_quarter[date + 'q'].dt.year[0], y_quarter[date + 'q'].dt.month[0]
@@ -76,9 +75,9 @@ def line_y(permno, y_annual, y_quarter, y_ay, y_qy, y_qq, date):
 
 def build_xy(year, dy, dq, group):
     y_annual, y_quarter, x_annual, x_quarter, x_month = load_x_y(group)
-    y_quarter.rename({'datadate': 'datadateq'}, inplace=True)
-    x_quarter.rename({'datadate': 'datadateq'}, inplace=True)
-    x_month.rename({'datadate': 'datadateq'}, inplace=True)
+    y_quarter.rename(columns={'datadate': 'datadateq'}, inplace=True)
+    x_quarter.rename(columns={'datadate': 'datadateq'}, inplace=True)
+    x_month.rename(columns={'datadate': 'datadateq'}, inplace=True)
     date = 'fdate' if dy == 0 else 'datadate'
 
     y_annual.dropna(subset=[date], inplace=True, axis=0)
@@ -138,9 +137,8 @@ def run_build_xy(year, dy=1, dq=0):
         pickle.dump(y_df, handle)
 
 
-def run_load_xy(years, set_name, dy=1, dq=0):
+def run_load_xy(years, set_name, dy=1, dq=0, save_dir='xy_data'):
     folder = '_'.join(['xy', str(dy), str(dq)])
-    save_dir = 'xy_data'
     if not os.path.exists(os.path.join(DATA_FOLDER, folder)):
         raise Exception('Preprocessed xy data folder not found')
     if not os.path.exists(os.path.join(DATA_FOLDER, save_dir)):
@@ -157,15 +155,16 @@ def run_load_xy(years, set_name, dy=1, dq=0):
         x_df_set = pd.concat([x_df_set, x_df_], axis=0)
         y_df_set = pd.concat([y_df_set, y_df_], axis=0)
 
-    with open(os.path.join(DATA_FOLDER, folder, '_'.join(['x', str(set_name)]) + '.pkl'), 'wb') as handle:
+    with open(os.path.join(DATA_FOLDER, save_dir, '_'.join(['x', str(set_name)]) + '.pkl'), 'wb') as handle:
         pickle.dump(x_df_set, handle)
 
-    with open(os.path.join(DATA_FOLDER, folder, '_'.join(['y', str(set_name)]) + '.pkl'), 'wb') as handle:
+    with open(os.path.join(DATA_FOLDER, save_dir, '_'.join(['y', str(set_name)]) + '.pkl'), 'wb') as handle:
         pickle.dump(y_df_set, handle)
 
 
 if __name__ == '__main__':
-    # years = np.arange(1987, 2017)
-    # pool = Pool(14)
-    # pool.map(run_build_xy, years)
-    run_build_xy(1996)
+    years = np.arange(1970, 2020)
+    pool = Pool(16)
+    pool.map(run_build_xy, years)
+    # run_build_xy(2017)
+
