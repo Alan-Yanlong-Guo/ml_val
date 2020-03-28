@@ -60,8 +60,11 @@ def build_x_line(permno, x_annual, x_quarter, x_month, y_quarter, x_ay, x_qy, x_
     x_line = pd.concat([x_index.reset_index(drop=True), x_annual.reset_index(drop=True),
                         x_quarter.reset_index(drop=True), x_month.reset_index(drop=True)], axis=1)
 
-    adhoc_filter = ['revtq', 'req', 'epspiq', 'quickq', 'curratq', 'cashrratq', 'peq', 'roeq', 'roaq']
-    adhoc_filter = adhoc_filter + [_ + '_aoa' for _ in adhoc_filter] + [_ + '_5o5' for _ in adhoc_filter]
+    adhoc_a_filter = ['ebit', 'ebitda', 'gma', 'operprof', 'cftrr', 'dpr', 'pb', 'roic', 'cod', 'capint', 'lev']
+    adhoc_q_filter = ['revtq', 'req', 'epspiq', 'quickq', 'curratq', 'cashrratq', 'peq', 'roeq', 'roaq']
+    adhoc_a_filter = adhoc_a_filter + [_ + '_aoa' for _ in adhoc_a_filter] + [_ + '_5o5' for _ in adhoc_a_filter]
+    adhoc_q_filter = adhoc_q_filter + [_ + '_aoa' for _ in adhoc_q_filter] + [_ + '_5o5' for _ in adhoc_q_filter]
+    adhoc_filter = adhoc_a_filter + adhoc_q_filter
     y_quarter = y_quarter[adhoc_filter]
 
     if np.shape(x_line)[0] != 1 and np.shape(y_quarter)[0] != 1:
@@ -126,8 +129,10 @@ def build_xy(year, dy, dq, group):
                 y_line, y_my, y_mm = build_y_line(permno, y_annual, y_quarter, y_ay, y_qy, y_qq, date)
                 x_ay, x_qy, x_qq, x_my, x_mm = horizon(y_ay, y_qy, y_qq, y_my, y_mm, dy, dq)
                 x_line = build_x_line(permno, x_annual, x_quarter, x_month, y_quarter, x_ay, x_qy, x_qq, x_my, x_mm)
-                x_df_ = pd.concat([x_df_, x_line], axis=0)
-                y_df_ = pd.concat([y_df_, y_line], axis=0)
+
+                if np.shape(y_line)[0] == 1 and np.shape(x_line)[0] == 1:
+                    x_df_ = pd.concat([x_df_, x_line], axis=0)
+                    y_df_ = pd.concat([y_df_, y_line], axis=0)
 
             except KeyError:
                 pass
@@ -149,8 +154,8 @@ def run_build_xy(year, dy=1, dq=0):
         x_df = pd.concat([x_df, x_df_], axis=0)
         y_df = pd.concat([y_df, y_df_], axis=0)
 
-    x_df.reset_index(inplace=True)
-    y_df.reset_index(inplace=True)
+    x_df.reset_index(inplace=True, drop=True)
+    y_df.reset_index(inplace=True, drop=True)
     folder = '_'.join(['xy', str(dy), str(dq)])
     if not os.path.exists(os.path.join(DATA_FOLDER, folder)):
         os.mkdir(os.path.join(DATA_FOLDER, folder))
