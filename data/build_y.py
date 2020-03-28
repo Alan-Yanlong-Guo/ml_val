@@ -52,8 +52,6 @@ def run_build_quarter_y(tics, group):
         compq_q_s1_ = compq_q_.shift(1)
         compq_qoq_ = (compq_q_ - compq_q_s1_) / compq_q_s1_
         compq_qoq = pd.concat([compq_qoq, compq_qoq_], axis=0)
-    y_q = pd.concat([compq_id, compq_q], axis=1)
-    y_q = pd.merge(y_q, compq_qoq, left_index=True, right_index=True)
 
     compq_aoa = pd.DataFrame()
     compq_5o5 = pd.DataFrame()
@@ -80,7 +78,8 @@ def run_build_quarter_y(tics, group):
     compq_aoa.columns = [col_names + '_aoa' for col_names in compq_a.columns]
     compq_5o5.columns = [col_names + '_5o5' for col_names in compq_a.columns]
     compq_a5oa5 = pd.concat([compq_aoa, compq_5o5], axis=1)
-
+    y_q = pd.concat([compq_id, compq_q], axis=1)
+    y_q = pd.merge(y_q, compq_qoq, left_index=True, right_index=True)
     y_q = pd.merge(y_q, compq_a5oa5, left_index=True, right_index=True)
 
     with open(os.path.join(DATA_FOLDER, 'quarter_y', '_'.join(['y', group]) + '.pkl'), 'wb') as handle:
