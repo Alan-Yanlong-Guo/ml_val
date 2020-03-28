@@ -74,7 +74,7 @@ def build_x_line(permno, x_annual, x_quarter, x_month, y_annual, y_quarter, x_ay
         y_annual.drop(y_annual.index, inplace=True)
         y_quarter.drop(y_quarter.index, inplace=True)
 
-    x_line = pd.concat([x_line, y_quarter.reset_index(drop=True)], axis=1)
+    x_line = pd.concat([x_line, y_annual.reset_index(drop=True), y_quarter.reset_index(drop=True)], axis=1)
 
     return x_line
 
