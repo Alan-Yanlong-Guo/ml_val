@@ -61,20 +61,21 @@ def build_x_line(permno, x_annual, x_quarter, x_month, y_annual, y_quarter, x_ay
     x_line = pd.concat([x_index.reset_index(drop=True), x_annual.reset_index(drop=True),
                         x_quarter.reset_index(drop=True), x_month.reset_index(drop=True)], axis=1)
 
-    adhoc_a_filter = ['ebit', 'ebitda', 'gma', 'operprof', 'cftrr', 'dpr', 'pb', 'roic', 'cod', 'capint', 'lev']
+    adhoc_a_filter = ['revt', 'ebit', 'ebitda', 're', 'epspi', 'gma', 'operprof', 'quick', 'currat',
+                       'cashrrat', 'cftrr', 'dpr', 'pe', 'pb', 'roe', 'roa', 'roic', 'cod', 'capint', 'lev']
     adhoc_a_filter = adhoc_a_filter + [_ + '_aoa' for _ in adhoc_a_filter] + [_ + '_5o5' for _ in adhoc_a_filter]
-    adhoc_q_filter = ['revtq', 'req', 'epspiq', 'quickq', 'curratq', 'cashrratq', 'peq', 'roeq', 'roaq']
-    adhoc_q_filter = adhoc_q_filter + [_ + '_aoa' for _ in adhoc_q_filter] + [_ + '_5o5' for _ in adhoc_q_filter]
-
     y_annual = y_annual[adhoc_a_filter]
-    y_quarter = y_quarter[adhoc_q_filter]
+
+    # adhoc_q_filter = ['revtq', 'req', 'epspiq', 'quickq', 'curratq', 'cashrratq', 'peq', 'roeq', 'roaq']
+    # adhoc_q_filter = adhoc_q_filter + [_ + '_aoa' for _ in adhoc_q_filter] + [_ + '_5o5' for _ in adhoc_q_filter]
+    # y_quarter = y_quarter[adhoc_q_filter]
 
     if np.shape(x_line)[0] != 1 and np.shape(y_annual)[0] != 1 and np.shape(y_quarter)[0] != 1:
         x_line.drop(x_line.index, inplace=True)
         y_annual.drop(y_annual.index, inplace=True)
-        y_quarter.drop(y_quarter.index, inplace=True)
+        # y_quarter.drop(y_quarter.index, inplace=True)
 
-    x_line = pd.concat([x_line, y_annual.reset_index(drop=True), y_quarter.reset_index(drop=True)], axis=1)
+    x_line = pd.concat([x_line, y_annual.reset_index(drop=True)], axis=1)
 
     return x_line
 

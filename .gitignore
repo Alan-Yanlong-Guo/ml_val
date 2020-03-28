@@ -11,3 +11,4 @@ ccm_data.pkl
 !/data_all/
 global_settings.py
 *.iml
+run.ipynb
