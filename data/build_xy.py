@@ -21,25 +21,28 @@ def load_x_y(group):
     with open(os.path.join(DATA_FOLDER, 'annual_x', '_'.join(['x', group]) + '.pkl'), 'rb') as handle:
         x_annual = pickle.load(handle)
         x_annual['fqtr'] = 4
-        x_annual.set_index(['permno', 'fyear', 'fqtr'], inplace=True).sort_index(inplace=True)
+        x_annual.set_index(['permno', 'fyear', 'fqtr'], inplace=True)
+        x_annual.sort_index(inplace=True)
         x_annual = pd.concat([x_annual.iloc[:, :5], x_filter(x_annual.iloc[:, 5:], 'annual')], axis=1)
 
     with open(os.path.join(DATA_FOLDER, 'quarter_x', '_'.join(['x', group]) + '.pkl'), 'rb') as handle:
         x_quarter = pickle.load(handle)
         x_quarter.rename(columns={'lpermno': 'permno'}, inplace=True)
         x_quarter.rename(columns={'fyearq': 'fyear'}, inplace=True)
-        x_quarter.set_index(['permno', 'fyear', 'fqtr'], inplace=True).sort_index(inplace=True)
+        x_quarter.set_index(['permno', 'fyear', 'fqtr'], inplace=True)
+        x_quarter.sort_index(inplace=True)
         x_quarter = pd.concat([x_quarter.iloc[:, :5], x_filter(x_quarter.iloc[:, 5:], 'quarter')], axis=1)
 
     with open(os.path.join(DATA_FOLDER, 'month_x', '_'.join(['x', group]) + '.pkl'), 'rb') as handle:
         x_month = pickle.load(handle)
-        x_month.set_index(['permno', 'year', 'month'], inplace=True).sort_index(inplace=True)
+        x_month.set_index(['permno', 'year', 'month'], inplace=True)
+        x_month.sort_index(inplace=True)
         x_month = pd.concat([x_month.iloc[:, :5], x_filter(x_month.iloc[:, 5:], 'month')], axis=1)
 
     return y_annual, y_quarter, x_annual, x_quarter, x_month
 
 
-def line_x(permno, x_annual, x_quarter, x_month, y_annual, x_ay, x_qy, x_qq, x_my, x_mm):
+def line_x(permno, x_annual, x_quarter, x_month, y_annual, y_quarter, x_ay, x_qy, x_qq, x_my, x_mm):
     # Slice Data
     x_annual = x_annual.loc[[(permno, x_ay, 4)], :]
     x_annual = x_annual.iloc[:, 5:]
@@ -52,17 +55,19 @@ def line_x(permno, x_annual, x_quarter, x_month, y_annual, x_ay, x_qy, x_qq, x_m
 
     y_annual = y_annual.loc[[(permno, x_ay, 4)], :]
     y_annual = y_annual.iloc[:, 5:]
+    y_quarter = y_quarter.loc[[(permno, x_qy, x_qq)], :]
+    y_quarter = y_quarter.iloc[:, 5:]
 
     # Filter Data
-    x = pd.concat([x_index.reset_index(drop=True), x_annual.reset_index(drop=True), x_quarter.reset_index(drop=True),
-                   x_month.reset_index(drop=True)], axis=1)
+    x = pd.concat([x_index.reset_index(drop=True), x_annual.reset_index(drop=True),
+                   x_quarter.reset_index(drop=True), x_month.reset_index(drop=True)], axis=1)
 
-    if np.shape(x)[0] == 1 and np.shape(y_annual)[0] == 1:
-        x = pd.concat([x, y_annual], axis=1)
-    else:
-        x = x.drop(x.index, inplace=True)
-        y_annual = y_annual.drop(y_annual.index, inplace=True)
-        x = pd.concat([x, y_annual], axis=1)
+    if np.shape(x)[0] != 1 and np.shape(y_annual)[0] != 1 and np.shape(y_quarter)[0] != 1:
+        x = x.drop(x.index, inplace=False)
+        y_annual = y_annual.drop(y_annual.index, inplace=False)
+        y_quarter = y_quarter.drop(y_annual.index, inplace=False)
+
+    x = pd.concat([x, y_annual.reset_index(drop=True), y_quarter.reset_index(drop=True)], axis=1)
 
     return x
 
@@ -87,13 +92,15 @@ def line_y(permno, y_annual, y_quarter, y_ay, y_qy, y_qq, date):
     y = pd.concat([y_index.reset_index(drop=True), y_annual.reset_index(drop=True), y_quarter.reset_index(drop=True)],
                   axis=1)
 
+    if np.shape(y)[0] != 1:
+        y = y.drop(y.index, inplace=False)
+
     return y, y_my, y_mm
 
 
 def build_xy(year, dy, dq, group):
     y_annual, y_quarter, x_annual, x_quarter, x_month = load_x_y(group)
     y_quarter.rename(columns={'datadate': 'datadateq'}, inplace=True)
-    x_quarter.rename(columns={'datadate': 'datadateq'}, inplace=True)
     x_month.rename(columns={'datadate': 'datadateq'}, inplace=True)
     date = 'fdate' if dy == 0 else 'datadate'
 
@@ -117,11 +124,10 @@ def build_xy(year, dy, dq, group):
             try:
                 y, y_my, y_mm = line_y(permno, y_annual, y_quarter, y_ay, y_qy, y_qq, date)
                 x_ay, x_qy, x_qq, x_my, x_mm = horizon(y_ay, y_qy, y_qq, y_my, y_mm, dy, dq)
-                x = line_x(permno, x_annual, x_quarter, x_month, y_annual, x_ay, x_qy, x_qq, x_my, x_mm)
+                x = line_x(permno, x_annual, x_quarter, x_month, y_annual, y_quarter, x_ay, x_qy, x_qq, x_my, x_mm)
 
-                if (np.shape(y)[0] == 1) and (x is not None):
-                    x_df_ = pd.concat([x_df_, x], axis=0)
-                    y_df_ = pd.concat([y_df_, y], axis=0)
+                x_df_ = pd.concat([x_df_, x], axis=0)
+                y_df_ = pd.concat([y_df_, y], axis=0)
 
             except KeyError:
                 pass
@@ -180,7 +186,7 @@ def run_load_xy(years, set_name, dy=1, dq=0, save_dir='xy_data'):
 
 
 if __name__ == '__main__':
-    years = np.arange(1970, 2020)
-    pool = Pool(16)
-    pool.map(run_build_xy, years)
-    # run_build_xy(2017)
+    # years = np.arange(1970, 2020)
+    # pool = Pool(4)
+    # pool.map(run_build_xy, years)
+    run_build_xy(2017)
