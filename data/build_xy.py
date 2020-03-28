@@ -4,7 +4,6 @@ import pandas as pd
 from tools.utils import tics_to_permnos
 from global_settings import DATA_FOLDER, links_df
 from tools.utils import horizon
-from global_settings import TRAIN_YEAR, CROSS_YEAR, TEST_YEAR
 import numpy as np
 import string
 import datetime
@@ -57,7 +56,13 @@ def line_x(permno, x_annual, x_quarter, x_month, y_annual, x_ay, x_qy, x_qq, x_m
     # Filter Data
     x = pd.concat([x_index.reset_index(drop=True), x_annual.reset_index(drop=True), x_quarter.reset_index(drop=True),
                    x_month.reset_index(drop=True)], axis=1)
-    x = pd.merge(x, y_annual, left_index=True, right_index=True)
+
+    if np.shape(x)[0] == 1 and np.shape(y_annual)[0] == 1:
+        x = pd.concat([x, y_annual], axis=1)
+    else:
+        x = x.drop(x.index, inplace=True)
+        y_annual = y_annual.drop(y_annual.index, inplace=True)
+        x = pd.concat([x, y_annual], axis=1)
 
     return x
 
@@ -114,7 +119,7 @@ def build_xy(year, dy, dq, group):
                 x_ay, x_qy, x_qq, x_my, x_mm = horizon(y_ay, y_qy, y_qq, y_my, y_mm, dy, dq)
                 x = line_x(permno, x_annual, x_quarter, x_month, y_annual, x_ay, x_qy, x_qq, x_my, x_mm)
 
-                if np.shape(x)[0] == 1 and np.shape(y)[0] == 1:
+                if (np.shape(y)[0] == 1) and (x is not None):
                     x_df_ = pd.concat([x_df_, x], axis=0)
                     y_df_ = pd.concat([y_df_, y], axis=0)
 
@@ -179,4 +184,3 @@ if __name__ == '__main__':
     pool = Pool(16)
     pool.map(run_build_xy, years)
     # run_build_xy(2017)
-
