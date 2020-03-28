@@ -176,6 +176,7 @@ def run_load_xy(years, set_name, dy=1, dq=0, save_dir='xy_data'):
             x_df_ = pickle.load(handle)
         with open(os.path.join(DATA_FOLDER, folder, '_'.join(['y', str(year)]) + '.pkl'), 'rb') as handle:
             y_df_ = pickle.load(handle)
+        print(year, x_df_.shape, y_df_.shape)
         x_df_set = pd.concat([x_df_set, x_df_], axis=0)
         y_df_set = pd.concat([y_df_set, y_df_], axis=0)
 
