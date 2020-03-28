@@ -64,11 +64,9 @@ def line_x(permno, x_annual, x_quarter, x_month, y_quarter, x_ay, x_qy, x_qq, x_
         x = x.drop(x.index, inplace=False)
         y_quarter = y_quarter.drop(y_quarter.index, inplace=False)
 
-    print(y_quarter.columns)
     filter_q = ['revtq', 'req', 'epspiq', 'quickq', 'curratq', 'cashrratq', 'peq', 'roeq', 'roaq']
     filter_q = filter_q + [_ + 'aoa' for _ in filter_q] + [_ + '5o5' for _ in filter_q]
     y_quarter = y_quarter[filter_q]
-    print(y_quarter)
     x = pd.concat([x, y_quarter.reset_index(drop=True)], axis=1)
 
     return x
