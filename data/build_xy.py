@@ -140,6 +140,7 @@ def build_xy(year, dy, dq, group):
     x_df_.reset_index(drop=True, inplace=True)
     y_df_.reset_index(drop=True, inplace=True)
 
+    print(year, x_df_.shape, y_df_.shape)
     return x_df_, y_df_
 
 
