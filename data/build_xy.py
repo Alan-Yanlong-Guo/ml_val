@@ -187,6 +187,7 @@ def run_load_xy(years, set_name, dy=1, dq=0, save_dir='xy_data'):
 
 
 if __name__ == '__main__':
+
     years = np.arange(1970, 2020)
     pool = Pool(16)
     pool.map(run_build_xy, years)
