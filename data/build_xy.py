@@ -125,8 +125,6 @@ def build_xy(year, dy, dq, group):
                 y, y_my, y_mm = line_y(permno, y_annual, y_quarter, y_ay, y_qy, y_qq, date)
                 x_ay, x_qy, x_qq, x_my, x_mm = horizon(y_ay, y_qy, y_qq, y_my, y_mm, dy, dq)
                 x = line_x(permno, x_annual, x_quarter, x_month, y_quarter, x_ay, x_qy, x_qq, x_my, x_mm)
-                print(x)
-                print(y)
                 x_df_ = pd.concat([x_df_, x], axis=0)
                 y_df_ = pd.concat([y_df_, y], axis=0)
 
@@ -173,7 +171,6 @@ def run_load_xy(years, set_name, dy=1, dq=0, save_dir='xy_data'):
     x_df_set, y_df_set = pd.DataFrame(), pd.DataFrame()
 
     for year in years:
-        print(year)
         with open(os.path.join(DATA_FOLDER, folder, '_'.join(['x', str(year)]) + '.pkl'), 'rb') as handle:
             x_df_ = pickle.load(handle)
         with open(os.path.join(DATA_FOLDER, folder, '_'.join(['y', str(year)]) + '.pkl'), 'rb') as handle:
