@@ -36,6 +36,9 @@ def horizon(y_ay, y_qy, y_qq, y_my, y_mm, dy, dq):
     if y_qq - dq < 0:
         x_qy = y_qy - dy - 1
         x_qq = (y_qq - dq) % 4
+    elif y_qq - dq == 0:
+        x_qy = y_qy - dy - 1
+        x_qq = 4
     else:
         x_qy = y_qy - dy
         x_qq = y_qq - dq
@@ -43,6 +46,9 @@ def horizon(y_ay, y_qy, y_qq, y_my, y_mm, dy, dq):
     if y_mm - 3*dq < 0:
         x_my = y_my - dy - 1
         x_mm = (y_mm - 3*dq) % 12
+    elif y_qq - dq == 0:
+        x_my = y_qy - dy - 1
+        x_mm = 12
     else:
         x_my = y_my - dy
         x_mm = y_mm - 3*dq
