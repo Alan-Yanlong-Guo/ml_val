@@ -60,13 +60,14 @@ def line_x(permno, x_annual, x_quarter, x_month, y_quarter, x_ay, x_qy, x_qq, x_
     x = pd.concat([x_index.reset_index(drop=True), x_annual.reset_index(drop=True),
                    x_quarter.reset_index(drop=True), x_month.reset_index(drop=True)], axis=1)
 
+    adhoc_filter = ['revtq', 'req', 'epspiq', 'quickq', 'curratq', 'cashrratq', 'peq', 'roeq', 'roaq']
+    adhoc_filter = adhoc_filter + [_ + '_aoa' for _ in adhoc_filter] + [_ + '_5o5' for _ in adhoc_filter]
+    y_quarter = y_quarter[adhoc_filter]
+
     if np.shape(x)[0] != 1 and np.shape(y_quarter)[0] != 1:
         x = x.drop(x.index, inplace=False)
         y_quarter = y_quarter.drop(y_quarter.index, inplace=False)
 
-    filter_q = ['revtq', 'req', 'epspiq', 'quickq', 'curratq', 'cashrratq', 'peq', 'roeq', 'roaq']
-    filter_q = filter_q + [_ + 'aoa' for _ in filter_q] + [_ + '5o5' for _ in filter_q]
-    y_quarter = y_quarter[filter_q]
     x = pd.concat([x, y_quarter.reset_index(drop=True)], axis=1)
 
     return x
@@ -186,7 +187,7 @@ def run_load_xy(years, set_name, dy=1, dq=0, save_dir='xy_data'):
 
 
 if __name__ == '__main__':
-    years = np.arange(1975, 2020)
-    pool = Pool(16)
-    pool.map(run_build_xy, years)
-    # run_build_xy(2017)
+    # years = np.arange(1975, 2020)
+    # pool = Pool(16)
+    # pool.map(run_build_xy, years)
+    run_build_xy(2017)
