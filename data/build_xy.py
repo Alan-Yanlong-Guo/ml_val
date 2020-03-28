@@ -42,7 +42,7 @@ def load_x_y(group):
     return y_annual, y_quarter, x_annual, x_quarter, x_month
 
 
-def line_x(permno, x_annual, x_quarter, x_month, y_quarter, x_ay, x_qy, x_qq, x_my, x_mm):
+def build_x_line(permno, x_annual, x_quarter, x_month, y_quarter, x_ay, x_qy, x_qq, x_my, x_mm):
     # Slice Data
     x_annual = x_annual.loc[[(permno, x_ay, 4)], :]
     x_annual = x_annual.iloc[:, 5:]
@@ -57,22 +57,23 @@ def line_x(permno, x_annual, x_quarter, x_month, y_quarter, x_ay, x_qy, x_qq, x_
     y_quarter = y_quarter.iloc[:, 5:]
 
     # Filter Data
-    x = pd.concat([x_index.reset_index(drop=True), x_annual.reset_index(drop=True),
-                   x_quarter.reset_index(drop=True), x_month.reset_index(drop=True)], axis=1)
+    x_line = pd.concat([x_index.reset_index(drop=True), x_annual.reset_index(drop=True),
+                        x_quarter.reset_index(drop=True), x_month.reset_index(drop=True)], axis=1)
 
-    if np.shape(x)[0] != 1 and np.shape(y_quarter)[0] != 1:
-        x = x.drop(x.index, inplace=False)
+    adhoc_filter = ['revtq', 'req', 'epspiq', 'quickq', 'curratq', 'cashrratq', 'peq', 'roeq', 'roaq']
+    adhoc_filter = adhoc_filter + [_ + '_aoa' for _ in adhoc_filter] + [_ + '_5o5' for _ in adhoc_filter]
+    y_quarter = y_quarter[adhoc_filter]
+
+    if np.shape(x_line)[0] != 1 and np.shape(y_quarter)[0] != 1:
+        x_line = x_line.drop(x_line.index, inplace=False)
         y_quarter = y_quarter.drop(y_quarter.index, inplace=False)
 
-    filter_q = ['revtq', 'req', 'epspiq', 'quickq', 'curratq', 'cashrratq', 'peq', 'roeq', 'roaq']
-    filter_q = filter_q + [_ + 'aoa' for _ in filter_q] + [_ + '5o5' for _ in filter_q]
-    y_quarter = y_quarter[filter_q]
-    x = pd.concat([x, y_quarter.reset_index(drop=True)], axis=1)
+    x_line = pd.concat([x_line, y_quarter.reset_index(drop=True)], axis=1)
 
-    return x
+    return x_line
 
 
-def line_y(permno, y_annual, y_quarter, y_ay, y_qy, y_qq, date):
+def build_y_line(permno, y_annual, y_quarter, y_ay, y_qy, y_qq, date):
     # Slice Data
     y_annual[date] = pd.to_datetime(y_annual[date])
     y_quarter[date + 'q'] = pd.to_datetime(y_quarter[date + 'q'])
@@ -89,13 +90,13 @@ def line_y(permno, y_annual, y_quarter, y_ay, y_qy, y_qq, date):
     y_quarter = y_quarter.iloc[:, 5:]
 
     # Filter Data
-    y = pd.concat([y_index.reset_index(drop=True), y_annual.reset_index(drop=True), y_quarter.reset_index(drop=True)],
-                  axis=1)
+    y_line = pd.concat([y_index.reset_index(drop=True), y_annual.reset_index(drop=True),
+                        y_quarter.reset_index(drop=True)], axis=1)
 
-    if np.shape(y)[0] != 1:
-        y = y.drop(y.index, inplace=False)
+    if np.shape(y_line)[0] != 1:
+        y_line = y_line.drop(y_line.index, inplace=False)
 
-    return y, y_my, y_mm
+    return y_line, y_my, y_mm
 
 
 def build_xy(year, dy, dq, group):
@@ -122,11 +123,11 @@ def build_xy(year, dy, dq, group):
             else:
                 y_ay = year - 1
             try:
-                y, y_my, y_mm = line_y(permno, y_annual, y_quarter, y_ay, y_qy, y_qq, date)
+                y_line, y_my, y_mm = build_y_line(permno, y_annual, y_quarter, y_ay, y_qy, y_qq, date)
                 x_ay, x_qy, x_qq, x_my, x_mm = horizon(y_ay, y_qy, y_qq, y_my, y_mm, dy, dq)
-                x = line_x(permno, x_annual, x_quarter, x_month, y_quarter, x_ay, x_qy, x_qq, x_my, x_mm)
-                x_df_ = pd.concat([x_df_, x], axis=0)
-                y_df_ = pd.concat([y_df_, y], axis=0)
+                x_line = build_x_line(permno, x_annual, x_quarter, x_month, y_quarter, x_ay, x_qy, x_qq, x_my, x_mm)
+                x_df_ = pd.concat([x_df_, x_line], axis=0)
+                y_df_ = pd.concat([y_df_, y_line], axis=0)
 
             except KeyError:
                 pass
