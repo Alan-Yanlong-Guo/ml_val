@@ -131,7 +131,7 @@ def build_xy(year, dy, dq, group):
             try:
                 y_line, y_my, y_mm = build_y_line(permno, y_annual, y_quarter, y_ay, y_qy, y_qq, date)
                 x_ay, x_qy, x_qq, x_my, x_mm = horizon(y_ay, y_qy, y_qq, y_my, y_mm, dy, dq)
-                x_line = build_x_line(permno, x_annual, x_quarter, x_month, y_quarter, x_ay, x_qy, x_qq, x_my, x_mm)
+                x_line = build_x_line(permno, x_annual, x_quarter, x_month, y_annual, y_quarter, x_ay, x_qy, x_qq, x_my, x_mm)
 
                 if np.shape(y_line)[0] == 1 and np.shape(x_line)[0] == 1:
                     x_df_ = pd.concat([x_df_, x_line], axis=0)
@@ -142,7 +142,8 @@ def build_xy(year, dy, dq, group):
 
     x_df_.reset_index(drop=True, inplace=True)
     y_df_.reset_index(drop=True, inplace=True)
-
+    print(np.shape(x_df_))
+    print(np.shape(y_df_))
     return x_df_, y_df_
 
 
@@ -196,7 +197,7 @@ def run_load_xy(years, set_name, dy=1, dq=0, save_dir='xy_data'):
 
 if __name__ == '__main__':
 
-    years = np.arange(1970, 2020)
-    pool = Pool(16)
-    pool.map(run_build_xy, years)
-    # run_build_xy(2017)
+    # years = np.arange(1970, 2020)
+    # pool = Pool(16)
+    # pool.map(run_build_xy, years)
+    run_build_xy(2017)
