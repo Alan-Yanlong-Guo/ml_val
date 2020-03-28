@@ -42,7 +42,7 @@ def load_x_y(group):
     return y_annual, y_quarter, x_annual, x_quarter, x_month
 
 
-def line_x(permno, x_annual, x_quarter, x_month, y_annual, y_quarter, x_ay, x_qy, x_qq, x_my, x_mm):
+def line_x(permno, x_annual, x_quarter, x_month, y_quarter, x_ay, x_qy, x_qq, x_my, x_mm):
     # Slice Data
     x_annual = x_annual.loc[[(permno, x_ay, 4)], :]
     x_annual = x_annual.iloc[:, 5:]
@@ -53,8 +53,6 @@ def line_x(permno, x_annual, x_quarter, x_month, y_annual, y_quarter, x_ay, x_qy
     x_month = x_month.loc[[(permno, x_my, x_mm)], :]
     x_month = x_month.iloc[:, 5:]
 
-    y_annual = y_annual.loc[[(permno, x_ay, 4)], :]
-    y_annual = y_annual.iloc[:, 5:]
     y_quarter = y_quarter.loc[[(permno, x_qy, x_qq)], :]
     y_quarter = y_quarter.iloc[:, 5:]
 
@@ -62,12 +60,16 @@ def line_x(permno, x_annual, x_quarter, x_month, y_annual, y_quarter, x_ay, x_qy
     x = pd.concat([x_index.reset_index(drop=True), x_annual.reset_index(drop=True),
                    x_quarter.reset_index(drop=True), x_month.reset_index(drop=True)], axis=1)
 
-    if np.shape(x)[0] != 1 and np.shape(y_annual)[0] != 1 and np.shape(y_quarter)[0] != 1:
+    if np.shape(x)[0] != 1 and np.shape(y_quarter)[0] != 1:
         x = x.drop(x.index, inplace=False)
-        y_annual = y_annual.drop(y_annual.index, inplace=False)
-        y_quarter = y_quarter.drop(y_annual.index, inplace=False)
+        y_quarter = y_quarter.drop(y_quarter.index, inplace=False)
 
-    x = pd.concat([x, y_annual.reset_index(drop=True), y_quarter.reset_index(drop=True)], axis=1)
+    print(y_quarter.columns)
+    filter_q = ['revtq', 'req', 'epspiq', 'quickq', 'curratq', 'cashrratq', 'peq', 'roeq', 'roaq']
+    filter_q = filter_q + [_ + 'aoa' for _ in filter_q] + [_ + '5o5' for _ in filter_q]
+    y_quarter = y_quarter[filter_q]
+    print(y_quarter)
+    x = pd.concat([x, y_quarter.reset_index(drop=True)], axis=1)
 
     return x
 
@@ -124,8 +126,9 @@ def build_xy(year, dy, dq, group):
             try:
                 y, y_my, y_mm = line_y(permno, y_annual, y_quarter, y_ay, y_qy, y_qq, date)
                 x_ay, x_qy, x_qq, x_my, x_mm = horizon(y_ay, y_qy, y_qq, y_my, y_mm, dy, dq)
-                x = line_x(permno, x_annual, x_quarter, x_month, y_annual, y_quarter, x_ay, x_qy, x_qq, x_my, x_mm)
-
+                x = line_x(permno, x_annual, x_quarter, x_month, y_quarter, x_ay, x_qy, x_qq, x_my, x_mm)
+                print(x)
+                print(y)
                 x_df_ = pd.concat([x_df_, x], axis=0)
                 y_df_ = pd.concat([y_df_, y], axis=0)
 
@@ -149,6 +152,8 @@ def run_build_xy(year, dy=1, dq=0):
         x_df = pd.concat([x_df, x_df_], axis=0)
         y_df = pd.concat([y_df, y_df_], axis=0)
 
+    x_df.reset_index(inplace=True)
+    y_df.reset_index(inplace=True)
     folder = '_'.join(['xy', str(dy), str(dq)])
     if not os.path.exists(os.path.join(DATA_FOLDER, folder)):
         os.mkdir(os.path.join(DATA_FOLDER, folder))
