@@ -1,0 +1,100 @@
+import pandas as pd
+import numpy as np
+import wrds
+import os
+import pickle
+from global_settings import DATA_FOLDER
+conn = wrds.Connection(wrds_username='dachxiu')
+
+
+sics_c = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']
+sics_f = ['01', '02', '07', '08', '09', '10', '12', '13', '14', '15', '16', '17', '20', '21', '22', '23', '24',
+         '25', '26', '27', '28', '29', '30', '31', '32', '33', '34', '35', '36', '37', '38', '39', '40', '41',
+         '42', '44', '45', '46', '47', '48', '49', '50', '51', '52', '53', '54', '55', '56', '57', '58', '59',
+         '60', '61', '62', '63', '64', '65', '67', '70', '72', '73', '75', '76', '78', '79', '80', '81', '82',
+         '83', '86', '87', '88', '89', '97', '99']
+
+filter_list_i = ['revt', 'ebit', 'ebitda', 're']
+filter_list_j = ['epspi', 'gma', 'operprof', 'quick', 'currat', 'cashrrat', 'cftrr', 'dpr', 'pe', 'pb', 'roe', 'roa',
+                 'roic', 'cod', 'capint', 'lev']
+
+
+def build_compa(year):
+    compa = conn.raw_sql(f"""
+                         select
+                         fyear, apdedate, datadate, pdate, fdate, sich, f.gvkey, REVT, EBIT, EBITDA, RE, EPSPI, GP, 
+                         OPITI, ACT, INVT, LCT, CH, OANCF, DVP,  DVC, PRSTKC, NI, CSHO, PRCC_F, mkvalt, BKVLPS, AT, LT, 
+                         DVT, ICAPT, XINT, DLCCH, DLTT, GDWL, GWO, CAPX, DLC, SEQ
+                         from comp.funda as f
+                         where f.fyear = {year}
+                         and REVT != 'NaN' 
+                         and f.indfmt='INDL'
+                         and f.datafmt='STD'
+                         and f.popsrc='D'
+                         and f.consol='C'
+                         """)
+
+    compa.fillna(value=np.nan, inplace=True)
+    compa['fyear'].astype(int)
+    compa['fqtr'] = 4
+    compa['datadate'] = pd.to_datetime(compa['datadate'])
+
+    compa['gma'] = compa['gp'] / compa['revt']
+    compa['operprof'] = compa['opiti'] / compa['revt']
+    compa['quick'] = (compa['act'] - compa['invt']) / compa['lct']
+    compa['currat'] = compa['act'] / compa['lct']
+    compa['cashrrat'] = compa['ch'] / compa['lct']
+    compa['cftrr'] = compa['oancf'] / compa['revt']
+    compa['dpr'] = (compa['dvp'] + compa['dvc'] + compa['prstkc']) / compa['ni']
+    compa['pe'] = (compa['csho']*compa['prcc_f']) / compa['ni']
+    compa['pb'] = (compa['mkvalt']) / (compa['bkvlps'])
+    compa['roe'] = compa['ni'] / (compa['csho']*compa['prcc_f'])
+    compa['roa'] = compa['ni'] / (compa['at'] - compa['lt'])
+    compa['roic'] = (compa['ni'] - compa['dvt']) / compa['icapt']
+    compa['cod'] = compa['xint'] / (compa['dlcch'] + compa['dltt'])
+    compa['capint'] = compa['capx'] / compa['at']
+    compa['lev'] = (compa['dltt'] + compa['dlc']) / compa['seq']
+
+    return compa
+
+
+def build_table(compa, year, cf):
+
+    if cf == 'c':
+        sics = sics_c
+    elif cf == 'f':
+        sics = sics_f
+    else:
+        raise Exception('Invalid Coarse Fine Type')
+
+    industrial = pd.DataFrame(columns=[_ + '_sum' for _ in filter_list_i] + [_ + '_med' for _ in filter_list_i] +
+                                      [_ + '_med' for _ in filter_list_j])
+
+    for sic in sics:
+        if cf == 'c':
+            compa_ = compa[compa['sich'].apply(lambda _: str(_)[:1] == sic)]
+        else:
+            compa_ = compa[compa['sich'].apply(lambda _: str(_)[:2] == sic)]
+        compa_i = compa_[filter_list_i]
+        compa_j = compa_[filter_list_j]
+        compa_i_sum = compa_i.sum(axis=0)
+        compa_i_med = compa_i.median(axis=0)
+        compa_j_med = compa_j.median(axis=0)
+        industrial_ = np.concatenate([compa_i_sum, compa_i_med, compa_j_med], axis=0)
+        industrial = industrial.append(pd.DataFrame([industrial_], columns=industrial.columns))
+
+    print(np.shape(industrial))
+    industrial.set_index(sics, drop=True)
+
+    with open(os.path.join(DATA_FOLDER, 'industrial', '_'.join(['industrial', str(year), cf]) + '.pkl'), 'wb') as handle:
+        pickle.dump(industrial, handle)
+
+
+def run_build_table(year):
+    compa = build_compa(year)
+    build_table(compa, year, 'c')
+    build_table(compa, year, 'f')
+
+
+if __name__ == '__main__':
+    run_build_table(2017)
