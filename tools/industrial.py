@@ -7,8 +7,8 @@ from global_settings import DATA_FOLDER
 conn = wrds.Connection(wrds_username='dachxiu')
 
 
-sics_c = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']
-sics_f = ['01', '02', '07', '08', '09', '10', '12', '13', '14', '15', '16', '17', '20', '21', '22', '23', '24',
+sics_c = ['1', '2', '3', '4', '5', '6', '7', '8', '9']
+sics_f = ['10', '12', '13', '14', '15', '16', '17', '20', '21', '22', '23', '24',
          '25', '26', '27', '28', '29', '30', '31', '32', '33', '34', '35', '36', '37', '38', '39', '40', '41',
          '42', '44', '45', '46', '47', '48', '49', '50', '51', '52', '53', '54', '55', '56', '57', '58', '59',
          '60', '61', '62', '63', '64', '65', '67', '70', '72', '73', '75', '76', '78', '79', '80', '81', '82',
@@ -83,18 +83,18 @@ def build_table(compa, year, cf):
         industrial_ = np.concatenate([compa_i_sum, compa_i_med, compa_j_med], axis=0)
         industrial = industrial.append(pd.DataFrame([industrial_], columns=industrial.columns))
 
-    print(np.shape(industrial))
-    industrial.set_index(sics, drop=True)
+    industrial.index = pd.Index(sics)
 
     with open(os.path.join(DATA_FOLDER, 'industrial', '_'.join(['industrial', str(year), cf]) + '.pkl'), 'wb') as handle:
         pickle.dump(industrial, handle)
 
 
-def run_build_table(year):
-    compa = build_compa(year)
-    build_table(compa, year, 'c')
-    build_table(compa, year, 'f')
+def run_build_table(years):
+    for year in years:
+        compa = build_compa(year)
+        build_table(compa, year, 'c')
+        build_table(compa, year, 'f')
 
 
 if __name__ == '__main__':
-    run_build_table(2017)
+    run_build_table(np.arange(1970, 2020))
