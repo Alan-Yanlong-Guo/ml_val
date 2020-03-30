@@ -46,5 +46,5 @@ def run_build_x(group):
 
 if __name__ == '__main__':
     for group in groups:
-        print(f'{datetime.now()} Working on' + group)
+        print(f'{datetime.now()} Working on group with permno starting with ' + group)
         run_build_x(group)

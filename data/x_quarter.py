@@ -306,7 +306,7 @@ def build_compq6(permnos, ccm_jun):
                      'rdq', 'chtx', 'roaq', 'rsup', 'stdacc', 'stdcf', 'sgrvol', 'rdmq', 'rdsq', 'olq', 'tanq', 'kzq',
                      'alaq', 'almq', 'laq', 'bmq', 'dmq', 'amq', 'epq', 'cpq', 'emq', 'spq', 'ndpq', 'ebpq', 'wwq',
                      'rs', 'droeq', 'droaq', 'noaq', 'rnaq', 'pmq', 'atoq', 'ctoq', 'glaq', 'oleq', 'olaq', 'claq',
-                     'blq', 'sgq', 'sue', 'roavol', 'cash', 'cinvest', 'm7', 'm8', 'prccq', 'roeq', 'aeavol', 'ear']]
+                     'blq', 'sgq', 'roavol', 'cash', 'cinvest', 'm7', 'm8', 'prccq', 'roeq', 'aeavol', 'ear']]
 
     compq6 = compq6.drop_duplicates()
 
