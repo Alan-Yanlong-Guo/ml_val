@@ -66,7 +66,7 @@ def run_build_quarter_y(permnos, group):
                 compq_a_s1_ = compq_a_.shift(1)
                 compq_a_s5_ = compq_a_.shift(5)
                 compq_aoa_ = (compq_a_ / compq_a_s1_) - 1
-                compq_5o5_ = (compq_a_ / compq_a_s5_).pow(1 / 5) - 1
+                compq_5o5_ = (compq_a_ / compq_a_s5_).pow(1/5) - 1
                 compq_aoa = pd.concat([compq_aoa, compq_aoa_], axis=0)
                 compq_5o5 = pd.concat([compq_5o5, compq_5o5_], axis=0)
             except KeyError:

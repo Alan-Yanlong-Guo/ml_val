@@ -4,37 +4,27 @@ import os
 from global_settings import TOOLS_FOLDER
 
 
-# def tics_to_permnos(tics):
-#     permnos = []
-#     for tic in tics:
-#         permno = int(links_df.loc[links_df['SYMBOL'] == tic]['PERMNO'])
-#         permnos.append(permno)
-#     permnos = tuple(permnos)
-#     return permnos
-#
-#
-# def tic_to_permno(tic):
-#     permno = int(links_df.loc[links_df['SYMBOL'] == tic]['PERMNO'])
-#     return permno
-
-
 def permnos_to_gvkeys(permnos):
     gvkeys = []
     for permno in permnos:
-        gvkey = list(set(ccm.loc[ccm['permno'] == permno]['gvkey']))[0]
-        gvkeys.append(gvkey)
+        gvkey = list(ccm.loc[ccm['permno'] == permno]['gvkey'])
+        assert len(gvkey) == 1, 'Not one-to-one mapping'
+        gvkeys.append(gvkey[0])
+
     gvkeys = tuple(gvkeys)
     return gvkeys
 
 
 def permno_to_gvkey(permno):
-    gvkey = list(set(ccm.loc[ccm['permno'] == permno]['gvkey']))[0]
-    return gvkey
+    gvkey = list(ccm.loc[ccm['permno'] == permno]['gvkey'])
+    assert len(gvkey) == 1, 'Not one-to-one mapping'
+    return gvkey[0]
 
 
 def gvkey_to_permno(gvkey):
-    permno = list(set(ccm.loc[ccm['gvkey'] == gvkey]['permno']))[0]
-    return permno
+    permno = list(ccm.loc[ccm['gvkey'] == gvkey]['permno'])
+    assert len(permno) == 1, 'Not one-to-one mapping'
+    return permno[0]
 
 
 def permno_unique():
@@ -117,17 +107,33 @@ def y_filter(y, filter_type):
 
 def reduce_ccm():
     ccm_raw = pd.read_pickle(os.path.join(TOOLS_FOLDER, 'ccm_raw.pkl'))
-    indexer_filter = []
+    indexer_filter_i = []
+    indexer_filter_j = []
 
     for permno in ccm_raw['permno']:
         if len(set(ccm_raw[ccm_raw['permno'] == permno]['gvkey'])) == 1:
-            indexer_filter.append(permno)
+            indexer_filter_i.append(permno)
     for gvkey in ccm_raw['gvkey']:
         permno_list = list(set(ccm_raw[ccm_raw['gvkey'] == gvkey]['permno']))
         if len(permno_list) == 1:
-            indexer_filter.append(permno_list[0])
+            indexer_filter_j.append(permno_list[0])
 
-    indexer_filter = list(set(indexer_filter))
+    indexer_filter = list(set(indexer_filter_i) & set(indexer_filter_j))
     ccm = ccm_raw.loc[ccm_raw['permno'].isin(indexer_filter)]
+    ccm.drop_duplicates(['gvkey', 'permno'], inplace=True)
+    ccm.reset_index(drop=True, inplace=True)
 
     return ccm
+
+# def tics_to_permnos(tics):
+#     permnos = []
+#     for tic in tics:
+#         permno = int(links_df.loc[links_df['SYMBOL'] == tic]['PERMNO'])
+#         permnos.append(permno)
+#     permnos = tuple(permnos)
+#     return permnos
+#
+#
+# def tic_to_permno(tic):
+#     permno = int(links_df.loc[links_df['SYMBOL'] == tic]['PERMNO'])
+#     return permno

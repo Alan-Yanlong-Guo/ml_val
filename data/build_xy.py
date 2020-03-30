@@ -7,7 +7,7 @@ import numpy as np
 import string
 import datetime
 from multiprocessing import Pool
-from tools.utils import x_filter, permnos_to_gvkeys
+from tools.utils import x_filter
 
 
 def load_x_y(group):
