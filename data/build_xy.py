@@ -1,7 +1,7 @@
 import pickle
 import os
 import pandas as pd
-from global_settings import DATA_FOLDER, links_df, ccm
+from global_settings import DATA_FOLDER, ccm
 from tools.utils import horizon
 import numpy as np
 import string

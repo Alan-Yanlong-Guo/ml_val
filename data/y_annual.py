@@ -1,6 +1,6 @@
 import pandas as pd
 import numpy as np
-from tools.utils import permnos_to_gvkeys
+from tools.utils import permnos_to_gvkeys, gvkey_to_permno
 from global_settings import conn
 
 
