@@ -1,4 +1,4 @@
-from global_settings import links_df, link_df, ccm
+from global_settings import link_df, ccm
 import pandas as pd
 import os
 from global_settings import TOOLS_FOLDER
@@ -30,11 +30,6 @@ def permnos_to_gvkeys(permnos):
 def permno_to_gvkey(permno):
     gvkey = list(set(ccm.loc[ccm['permno'] == permno]['gvkey']))[0]
     return gvkey
-
-
-def gvkey_to_permno(gvkey):
-    permno = list(set(ccm.loc[ccm['gvkey'] == gvkey]['permno']))[0]
-    return permno
 
 
 def permno_unique():
@@ -115,15 +110,19 @@ def y_filter(y, filter_type):
     return y
 
 
-def reduce_ccm(indexer='permno'):
+def reduce_ccm():
     ccm_raw = pd.read_pickle(os.path.join(TOOLS_FOLDER, 'ccm_raw.pkl'))
-    assert indexer in ['permno', 'gvkey'], 'Invalid Indexer Type'
-    indexer_ = 'gvkey' if indexer == 'permno' else 'permno'
     indexer_filter = []
 
-    for permno in ccm_raw[indexer]:
-        if len(set(ccm_raw[ccm_raw[indexer] == permno][indexer_])) == 1:
+    for permno in ccm_raw['permno']:
+        if len(set(ccm_raw[ccm_raw['permno'] == permno]['gvkey'])) == 1:
             indexer_filter.append(permno)
-    ccm = ccm_raw.loc[ccm_raw[indexer].isin(indexer_filter)]
+    for gvkey in ccm_raw['gvkey']:
+        permno_list = list(set(ccm_raw[ccm_raw['gvkey'] == gvkey]['permno']))
+        if len(permno_list) == 1:
+            indexer_filter.append(permno_list[0])
+    
+    indexer_filter = list(set(indexer_filter))
+    ccm = ccm_raw.loc[ccm_raw['permno'].isin(indexer_filter)]
 
     return ccm
