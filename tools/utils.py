@@ -32,6 +32,11 @@ def permno_to_gvkey(permno):
     return gvkey
 
 
+def gvkey_to_permno(gvkey):
+    permno = list(set(ccm.loc[ccm['gvkey'] == gvkey]['permno']))[0]
+    return permno
+
+
 def permno_unique():
     for tic in list(set(link_df['SYMBOL'])):
         permno = set(link_df[link_df['SYMBOL'] == tic]['PERMNO'])
@@ -121,7 +126,7 @@ def reduce_ccm():
         permno_list = list(set(ccm_raw[ccm_raw['gvkey'] == gvkey]['permno']))
         if len(permno_list) == 1:
             indexer_filter.append(permno_list[0])
-    
+
     indexer_filter = list(set(indexer_filter))
     ccm = ccm_raw.loc[ccm_raw['permno'].isin(indexer_filter)]
 
