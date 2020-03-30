@@ -1,17 +1,39 @@
-from global_settings import links_df, link_df
+from global_settings import links_df, link_df, ccm
+import pandas as pd
+import os
+from global_settings import TOOLS_FOLDER
 
 
-def tics_to_permnos(tics):
-    permnos = []
-    for tic in tics:
-        permno = int(links_df.loc[links_df['SYMBOL'] == tic]['PERMNO'])
-        permnos.append(permno)
-    permnos = tuple(permnos)
-    return permnos
+# def tics_to_permnos(tics):
+#     permnos = []
+#     for tic in tics:
+#         permno = int(links_df.loc[links_df['SYMBOL'] == tic]['PERMNO'])
+#         permnos.append(permno)
+#     permnos = tuple(permnos)
+#     return permnos
+#
+#
+# def tic_to_permno(tic):
+#     permno = int(links_df.loc[links_df['SYMBOL'] == tic]['PERMNO'])
+#     return permno
 
 
-def tic_to_permno(tic):
-    permno = int(links_df.loc[links_df['SYMBOL'] == tic]['PERMNO'])
+def permnos_to_gvkeys(permnos):
+    gvkeys = []
+    for permno in permnos:
+        gvkey = list(set(ccm.loc[ccm['permno'] == permno]['gvkey']))[0]
+        gvkeys.append(gvkey)
+    gvkeys = tuple(gvkeys)
+    return gvkeys
+
+
+def permno_to_gvkey(permno):
+    gvkey = list(set(ccm.loc[ccm['permno'] == permno]['gvkey']))[0]
+    return gvkey
+
+
+def gvkey_to_permno(gvkey):
+    permno = list(set(ccm.loc[ccm['gvkey'] == gvkey]['permno']))[0]
     return permno
 
 
@@ -92,3 +114,16 @@ def y_filter(y, filter_type):
 
     return y
 
+
+def reduce_ccm(indexer='permno'):
+    ccm_raw = pd.read_pickle(os.path.join(TOOLS_FOLDER, 'ccm_raw.pkl'))
+    assert indexer in ['permno', 'gvkey'], 'Invalid Indexer Type'
+    indexer_ = 'gvkey' if indexer == 'permno' else 'permno'
+    indexer_filter = []
+
+    for permno in ccm_raw[indexer]:
+        if len(set(ccm_raw[ccm_raw[indexer] == permno][indexer_])) == 1:
+            indexer_filter.append(permno)
+    ccm = ccm_raw.loc[ccm_raw[indexer].isin(indexer_filter)]
+
+    return ccm

@@ -1,14 +1,13 @@
 import pickle
 import os
 import pandas as pd
-from tools.utils import tics_to_permnos
-from global_settings import DATA_FOLDER, links_df
+from global_settings import DATA_FOLDER, links_df, ccm
 from tools.utils import horizon
 import numpy as np
 import string
 import datetime
 from multiprocessing import Pool
-from tools.utils import x_filter
+from tools.utils import x_filter, permnos_to_gvkeys
 
 
 def load_x_y(group):
@@ -114,8 +113,7 @@ def build_xy(year, dy, dq, group):
 
     y_annual.dropna(subset=[date], inplace=True, axis=0)
     y_quarter.dropna(subset=[date + 'q'], inplace=True, axis=0)
-    tics = tuple([symbol for symbol in links_df['SYMBOL'] if symbol[0] == group])
-    permnos = tics_to_permnos(tics)
+    permnos = list(set(ccm['permno']))
 
     x_df_ = pd.DataFrame()
     y_df_ = pd.DataFrame()

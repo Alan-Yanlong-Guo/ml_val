@@ -1,16 +1,17 @@
 import pandas as pd
 import numpy as np
-from tools.utils import tic_to_permno
+from tools.utils import permnos_to_gvkeys, gvkey_to_permno
 from global_settings import conn
 
 
-def build_compq(tics):
+def build_compq(permnos):
+    gvkeys = permnos_to_gvkeys(permnos)
     compq = conn.raw_sql(f"""
                          select 
                          fyearq, fqtr, apdedateq, datadate, pdateq, fdateq, f.gvkey, REVTQ, REQ, EPSPIQ, ACTQ, 
-                         INVTQ, LCTQ, CHQ, CSHOQ, PRCCQ, NIQ, ATQ, LTQ, GDWLQ, tic
+                         INVTQ, LCTQ, CHQ, CSHOQ, PRCCQ, NIQ, ATQ, LTQ, GDWLQ
                          from comp.fundq as f
-                         where tic in {tics}
+                         where f.gvkey in {gvkeys}
                          and REVTQ != 'NaN'
                          """)
 
@@ -19,8 +20,7 @@ def build_compq(tics):
     compq['fyearq'].astype(int)
     compq['fqtr'].astype(int)
     compq['datadate'] = pd.to_datetime(compq['datadate'])
-    compq['permno'] = compq['tic'].apply(tic_to_permno)
-    compq.drop(['tic'], axis=1, inplace=True)
+    compq['permno'] = compq['gvkey'].apply(gvkey_to_permno)
 
     compq['quickq'] = (compq['actq'] - compq['invtq']) / compq['lctq']
     compq['curratq'] = compq['actq'] / compq['lctq']
