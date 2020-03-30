@@ -23,8 +23,8 @@ def build_compa(year):
     compa = conn.raw_sql(f"""
                          select
                          fyear, apdedate, datadate, pdate, fdate, sich, f.gvkey, REVT, EBIT, EBITDA, RE, EPSPI, GP, 
-                         OPITI, ACT, INVT, LCT, CH, OANCF, DVP,  DVC, PRSTKC, NI, CSHO, PRCC_F, mkvalt, BKVLPS, AT, LT, 
-                         DVT, ICAPT, XINT, DLCCH, DLTT, GDWL, GWO, CAPX, DLC, SEQ
+                         OPINCAR, ACT, INVT, LCT, CH, OANCF, DVP,  DVC, PRSTKC, NI, CSHO, PRCC_F, mkvalt, BKVLPS, AT, 
+                         LT, DVT, ICAPT, XINT, DLCCH, DLTT, GDWL, GWO, CAPX, DLC, SEQ, tic
                          from comp.funda as f
                          where f.fyear = {year}
                          and REVT != 'NaN' 
@@ -39,8 +39,11 @@ def build_compa(year):
     compa['fqtr'] = 4
     compa['datadate'] = pd.to_datetime(compa['datadate'])
 
+    for tic in set(compa['tic']):
+        print(np.shape(compa[compa['tic'] == tic])[0])
+
     compa['gma'] = compa['gp'] / compa['revt']
-    compa['operprof'] = compa['opiti'] / compa['revt']
+    compa['operprof'] = compa['opincar'] / compa['revt']
     compa['quick'] = (compa['act'] - compa['invt']) / compa['lct']
     compa['currat'] = compa['act'] / compa['lct']
     compa['cashrrat'] = compa['ch'] / compa['lct']
@@ -58,7 +61,7 @@ def build_compa(year):
     return compa
 
 
-def build_table(compa, year, cf):
+def build_table(compa, compa_s1, compa_s5, year, cf):
 
     if cf == 'c':
         sics = sics_c
@@ -73,14 +76,28 @@ def build_table(compa, year, cf):
     for sic in sics:
         if cf == 'c':
             compa_ = compa[compa['sich'].apply(lambda _: str(_)[:1] == sic)]
+            compa_s1_ = compa_s1[compa_s1['sich'].apply(lambda _: str(_)[:1] == sic)]
+            compa_s5_ = compa_s5[compa_s5['sich'].apply(lambda _: str(_)[:1] == sic)]
         else:
             compa_ = compa[compa['sich'].apply(lambda _: str(_)[:2] == sic)]
-        compa_i = compa_[filter_list_i]
-        compa_j = compa_[filter_list_j]
-        compa_i_sum = compa_i.sum(axis=0)
-        compa_i_med = compa_i.median(axis=0)
-        compa_j_med = compa_j.median(axis=0)
+            compa_s1_ = compa_s1[compa_s1['sich'].apply(lambda _: str(_)[:2] == sic)]
+            compa_s5_ = compa_s5[compa_s5['sich'].apply(lambda _: str(_)[:2] == sic)]
+
+        compa_i_sum, compa_i_med, compa_j_med = sum_med(compa_, filter_list_i, filter_list_j)
+        compa_i_sum_s1, compa_i_med_s1, compa_j_med_s1 = sum_med(compa_s1_, filter_list_i, filter_list_j)
+        compa_i_sum_s5, compa_i_med_s5, compa_j_med_s5 = sum_med(compa_s5_, filter_list_i, filter_list_j)
+        compa_i_sum_aoa = compa_i_sum.div(compa_i_sum_s1) - 1
+        compa_i_med_aoa = compa_i_med.div(compa_i_med_s1) - 1
+        compa_j_med_aoa = compa_j_med.div(compa_j_med_s1) - 1
+        compa_i_sum_5o5 = compa_i_sum.div(compa_i_sum_s5) - 1
+        compa_i_med_5o5 = compa_i_med.div(compa_i_med_s5) - 1
+        compa_j_med_5o5 = compa_j_med.div(compa_j_med_s5) - 1
+
         industrial_ = np.concatenate([compa_i_sum, compa_i_med, compa_j_med], axis=0)
+        industrial_aoa = np.concatenate([compa_i_sum_aoa, compa_i_med_aoa, compa_j_med_aoa], axis=0)
+        industrial_5o5 = np.concatenate([compa_i_sum_5o5, compa_i_med_5o5, compa_j_med_5o5], axis=0)
+        industrial_ = np.concatenate([industrial_, industrial_aoa, industrial_5o5], axis=0)
+
         industrial = industrial.append(pd.DataFrame([industrial_], columns=industrial.columns))
 
     industrial.index = pd.Index(sics)
@@ -89,12 +106,25 @@ def build_table(compa, year, cf):
         pickle.dump(industrial, handle)
 
 
+def sum_med(compa_, filter_list_i, filter_list_j):
+    compa_i = compa_[filter_list_i]
+    compa_j = compa_[filter_list_j]
+    compa_.replace({0: np.nan}, inplace=True)
+    compa_i_sum = compa_i.sum(axis=0, skipna=True, numeric_only=True)
+    compa_i_med = compa_i.median(axis=0, skipna=True, numeric_only=True)
+    compa_j_med = compa_j.median(axis=0, skipna=True, numeric_only=True)
+
+    return compa_i_sum, compa_i_med, compa_j_med
+
+
 def run_build_table(years):
     for year in years:
         compa = build_compa(year)
-        build_table(compa, year, 'c')
-        build_table(compa, year, 'f')
+        compa_s1 = build_compa(year-1)
+        compa_s5 = build_compa(year-5)
+        build_table(compa, compa_s1, compa_s5, year, 'c')
+        build_table(compa, compa_s1, compa_s5, year, 'f')
 
 
 if __name__ == '__main__':
-    run_build_table(np.arange(1970, 2020))
+    run_build_table(np.arange(1970, 2018))
