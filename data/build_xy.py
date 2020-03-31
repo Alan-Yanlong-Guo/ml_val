@@ -6,6 +6,7 @@ from tools.utils import horizon
 import numpy as np
 import datetime
 from tools.utils import x_filter
+from multiprocessing import Pool
 
 
 def load_x_y(group):
@@ -190,7 +191,7 @@ def run_load_xy(years, set_name, dy=1, dq=0, save_dir='xy_data'):
 
 
 if __name__ == '__main__':
-    # years = np.arange(1960, 2020)
-    # pool = Pool(8)
-    # pool.map(run_build_xy, years)
-    run_build_xy(2017)
+    years = np.arange(1975, 2020)
+    pool = Pool(14)
+    pool.map(run_build_xy, years)
+    # run_build_xy(2017)
