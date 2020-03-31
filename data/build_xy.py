@@ -98,18 +98,18 @@ def build_y_line(permno, date_type, y_annual, y_quarter, y_ay, y_qy, y_qq, aq):
         y_annual[date_type] = pd.to_datetime(y_annual[date_type])
         y_annual = y_annual.loc[[(permno, y_ay, 4)], :]
         y_my, y_mm = y_annual[date_type].dt.year[0], y_annual[date_type].dt.month[0]
-        y_line_ = y_annual
+        y_line_y = y_annual
 
     else:
         y_quarter[date_type + 'q'] = pd.to_datetime(y_quarter[date_type + 'q'])
         y_quarter = y_quarter.loc[[(permno, y_qy, y_qq)], :]
         y_my, y_mm = y_quarter[date_type + 'q'].dt.year[0], y_quarter[date_type + 'q'].dt.month[0]
-        y_line_ = y_quarter
+        y_line_y = y_quarter
 
-    if np.shape(y_line_)[0] == 1:
-        y_line = y_line_
+    if np.shape(y_line_y)[0] == 1:
+        y_line = y_line_y
     else:
-        y_line = pd.DataFrame(columns=list(y_line_.columns))
+        y_line = pd.DataFrame(columns=list(y_line_y.columns))
 
     return y_line, y_my, y_mm
 
@@ -147,7 +147,7 @@ def build_xy(year, dy, dq, aq, group):
     return x_df_, y_df_
 
 
-def run_build_xy(year, dy=1, dq=0, aq='a'):
+def run_build_xy(year, dy=1, dq=0, aq='q'):
     print(f'{datetime.datetime.now()} Working on year {year}')
     if aq == 'a':
         assert dq == 0, 'Invalid dq value'
