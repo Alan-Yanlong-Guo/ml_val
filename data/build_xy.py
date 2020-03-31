@@ -50,7 +50,7 @@ def load_industrial(year, cf):
     return industrial
 
 
-def build_x_line(permno, x_annual, x_quarter, x_month, y_annual, industrial, x_ay, x_qy, x_qq, x_my, x_mm, cf):
+def build_x_line(permno, x_annual, x_quarter, x_month, y_annual, y_quarter, industrial, x_ay, x_qy, x_qq, x_my, x_mm, cf):
     # Slice Data
     x_annual = x_annual.loc[[(permno, x_ay, 4)], :]
     x_annual = x_annual.iloc[:, 5:]
@@ -63,6 +63,8 @@ def build_x_line(permno, x_annual, x_quarter, x_month, y_annual, industrial, x_a
     # Filter Data
     y_annual = y_annual.loc[[(permno, x_ay, 4)], :]
     y_annual = y_annual.iloc[:, 5:]
+    y_quarter = y_annual.loc[[(permno, x_ay, x_qq)], :]
+    y_quarter = y_quarter.iloc[:, 5:]
 
     if np.shape(x_annual)[0] == 1 and np.shape(x_quarter)[0] == 1 and np.shape(x_month)[0] == 1 and np.shape(y_annual)[0] == 1:
         sic = str(x_annual['sic'][0]).zfill(4)[:1] if cf == 'c' else str(x_annual['sic'][0]).zfill(4)[:2]
@@ -126,7 +128,7 @@ def build_xy(year, dy, dq, group, cf):
                 y_line, y_my, y_mm = build_y_line(permno, y_annual, y_quarter, y_ay, y_qy, y_qq, date)
                 x_ay, x_qy, x_qq, x_my, x_mm = horizon(y_ay, y_qy, y_qq, y_my, y_mm, dy, dq)
                 industrial = load_industrial(x_ay, cf)
-                x_line = build_x_line(permno, x_annual, x_quarter, x_month, y_annual, industrial, x_ay, x_qy, x_qq, x_my, x_mm, cf)
+                x_line = build_x_line(permno, x_annual, x_quarter, x_month, y_annual, y_quarter, industrial, x_ay, x_qy, x_qq, x_my, x_mm, cf)
 
                 if np.shape(y_line)[0] == 1 and np.shape(x_line)[0] == 1:
                     x_df_ = pd.concat([x_df_, x_line], axis=0)
