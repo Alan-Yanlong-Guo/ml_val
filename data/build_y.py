@@ -13,8 +13,8 @@ def run_build_annual_y(permnos, group):
     permnos = set(compa['permno'].tolist())
     compa_a = compa.set_index(['permno', 'fyear', 'fqtr'], inplace=False)
     compa_a = compa_a.sort_index(inplace=False)
-    compa_id = compa_a.iloc[:, :5]
-    compa_a = compa_a.iloc[:, 5:]
+    compa_id = compa_a.iloc[:, :6]
+    compa_a = compa_a.iloc[:, 6:]
     compa_a = y_filter(compa_a, 'annual')
 
     compa_aoa = pd.DataFrame()
@@ -41,8 +41,8 @@ def run_build_quarter_y(permnos, group):
     permnos = set(compq['permno'].tolist())
     compq_q = compq.set_index(['permno', 'fyearq', 'fqtr'], inplace=False)
     compq_q = compq_q.sort_index(inplace=False)
-    compq_id = compq_q.iloc[:, :5]
-    compq_q = compq_q.iloc[:, 5:]
+    compq_id = compq_q.iloc[:, :6]
+    compq_q = compq_q.iloc[:, 6:]
     compq_q = y_filter(compq_q, 'quarter')
 
     compq_qoq = pd.DataFrame()
@@ -58,7 +58,7 @@ def run_build_quarter_y(permnos, group):
         compq_a = compq[compq['fqtr'] == quarter]
         compq_a = compq_a.set_index(['permno', 'fyearq', 'fqtr'], inplace=False)
         compq_a = compq_a.sort_index(inplace=False)
-        compq_a = compq_a.iloc[:, 5:]
+        compq_a = compq_a.iloc[:, 6:]
         compq_a = y_filter(compq_a, 'quarter')
         for permno in permnos:
             try:

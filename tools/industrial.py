@@ -24,7 +24,7 @@ def build_compa(year):
                          select
                          fyear, apdedate, datadate, pdate, fdate, sich, f.gvkey, REVT, EBIT, EBITDA, RE, EPSPI, GP, 
                          OPINCAR, ACT, INVT, LCT, CH, OANCF, DVP,  DVC, PRSTKC, NI, CSHO, PRCC_F, mkvalt, BKVLPS, AT, 
-                         LT, DVT, ICAPT, XINT, DLCCH, DLTT, GDWL, GWO, CAPX, DLC, SEQ, tic
+                         LT, DVT, ICAPT, XINT, DLCCH, DLTT, GDWL, GWO, CAPX, DLC, SEQ
                          from comp.funda as f
                          where f.fyear = {year}
                          and REVT != 'NaN' 
