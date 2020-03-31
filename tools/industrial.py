@@ -39,9 +39,6 @@ def build_compa(year):
     compa['fqtr'] = 4
     compa['datadate'] = pd.to_datetime(compa['datadate'])
 
-    for tic in set(compa['tic']):
-        print(np.shape(compa[compa['tic'] == tic])[0])
-
     compa['gma'] = compa['gp'] / compa['revt']
     compa['operprof'] = compa['opincar'] / compa['revt']
     compa['quick'] = (compa['act'] - compa['invt']) / compa['lct']
@@ -70,8 +67,10 @@ def build_table(compa, compa_s1, compa_s5, year, cf):
     else:
         raise Exception('Invalid Coarse Fine Type')
 
-    industrial = pd.DataFrame(columns=[_ + '_sum' for _ in filter_list_i] + [_ + '_med' for _ in filter_list_i] +
-                                      [_ + '_med' for _ in filter_list_j])
+    columns_ = [_ + '_sum' for _ in filter_list_i] + [_ + '_med' for _ in filter_list_i] + [_ + '_med' for _ in filter_list_j]
+    columns_aoa = [_ + '_aoa' for _ in columns_]
+    columns_5o5 = [_ + '_5o5' for _ in columns_]
+    industrial = pd.DataFrame(columns= columns_ + columns_aoa + columns_5o5)
 
     for sic in sics:
         if cf == 'c':
@@ -101,15 +100,16 @@ def build_table(compa, compa_s1, compa_s5, year, cf):
         industrial = industrial.append(pd.DataFrame([industrial_], columns=industrial.columns))
 
     industrial.index = pd.Index(sics)
+    industrial.index.rename('sic', inplace=True)
 
     with open(os.path.join(DATA_FOLDER, 'industrial', '_'.join(['industrial', str(year), cf]) + '.pkl'), 'wb') as handle:
         pickle.dump(industrial, handle)
 
 
 def sum_med(compa_, filter_list_i, filter_list_j):
+    compa_.replace({0: np.nan, np.inf: np.nan, -np.inf: np.nan}, inplace=True)
     compa_i = compa_[filter_list_i]
     compa_j = compa_[filter_list_j]
-    compa_.replace({0: np.nan}, inplace=True)
     compa_i_sum = compa_i.sum(axis=0, skipna=True, numeric_only=True)
     compa_i_med = compa_i.median(axis=0, skipna=True, numeric_only=True)
     compa_j_med = compa_j.median(axis=0, skipna=True, numeric_only=True)
@@ -117,14 +117,14 @@ def sum_med(compa_, filter_list_i, filter_list_j):
     return compa_i_sum, compa_i_med, compa_j_med
 
 
-def run_build_table(years):
-    for year in years:
-        compa = build_compa(year)
-        compa_s1 = build_compa(year-1)
-        compa_s5 = build_compa(year-5)
-        build_table(compa, compa_s1, compa_s5, year, 'c')
-        build_table(compa, compa_s1, compa_s5, year, 'f')
+def run_build_table(year):
+    compa = build_compa(year)
+    compa_s1 = build_compa(year-1)
+    compa_s5 = build_compa(year-5)
+    build_table(compa, compa_s1, compa_s5, year, 'c')
+    build_table(compa, compa_s1, compa_s5, year, 'f')
 
 
 if __name__ == '__main__':
-    run_build_table(np.arange(1970, 2018))
+    for year in np.arange(2018, 2019):
+        run_build_table(year)

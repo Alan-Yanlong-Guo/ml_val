@@ -45,7 +45,7 @@ def tic_unique():
 
 def horizon(y_ay, y_qy, y_qq, y_my, y_mm, dy, dq):
     assert type(dy) == int and dy > 0, 'Invalid dy value'
-    assert type(dq) == int and dq in [1, 2, 3, 4], 'Invalid dq value'
+    assert type(dq) == int and dq in [0, 1, 2, 3], 'Invalid dq value'
 
     x_ay = y_ay - dy
     if y_qq - dq < 0:
@@ -73,7 +73,7 @@ def horizon(y_ay, y_qy, y_qq, y_my, y_mm, dy, dq):
 
 def x_filter(x, filter_type):
     if filter_type == 'annual':
-        filter_list = ['absacc', 'acc', 'agr', 'bm_ia', 'cashdebt', 'cashpr', 'cfp', 'cfp_ia', 'chatoia',
+        filter_list = ['sic', 'absacc', 'acc', 'agr', 'bm_ia', 'cashdebt', 'cashpr', 'cfp', 'cfp_ia', 'chatoia',
                        'chcsho', 'chempia', 'chinv', 'chpmia', 'convind', 'currat', 'currat', 'depr', 'divi',
                        'divo', 'dy', 'egr', 'ep', 'gma', 'grcapx', 'grltnoa', 'herf', 'hire', 'invest', 'lev',
                        'lgr', 'mve_ia', 'operprof', 'orgcap', 'pchcapx_ia', 'pchcurrat', 'pchdepr',

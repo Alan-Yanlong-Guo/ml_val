@@ -1,12 +1,11 @@
 import pickle
 import os
 import pandas as pd
-from global_settings import DATA_FOLDER, ccm
+from global_settings import DATA_FOLDER, ccm, groups
 from tools.utils import horizon
 import numpy as np
 import string
 import datetime
-from multiprocessing import Pool
 from tools.utils import x_filter
 
 
@@ -41,7 +40,18 @@ def load_x_y(group):
     return y_annual, y_quarter, x_annual, x_quarter, x_month
 
 
-def build_x_line(permno, x_annual, x_quarter, x_month, y_annual, y_quarter, x_ay, x_qy, x_qq, x_my, x_mm):
+def load_industrial(year, cf):
+    assert cf in ['c', 'f'], 'Invalid Coarse Fine Type'
+    with open(os.path.join(DATA_FOLDER, 'industrial', '_'.join(['industrial', str(year), cf]) + '.pkl'), 'rb') as handle:
+        industrial = pickle.load(handle)
+    industrial.reset_index(drop=False, inplace=True)
+    industrial['year'] = year
+    industrial.set_index(['year', 'sic'], inplace=True)
+
+    return industrial
+
+
+def build_x_line(permno, x_annual, x_quarter, x_month, y_annual, industrial, x_ay, x_qy, x_qq, x_my, x_mm):
     # Slice Data
     x_annual = x_annual.loc[[(permno, x_ay, 4)], :]
     x_annual = x_annual.iloc[:, 5:]
@@ -51,30 +61,20 @@ def build_x_line(permno, x_annual, x_quarter, x_month, y_annual, y_quarter, x_ay
     x_month = x_month.loc[[(permno, x_my, x_mm)], :]
     x_month = x_month.iloc[:, 5:]
 
+    # Filter Data
     y_annual = y_annual.loc[[(permno, x_ay, 4)], :]
     y_annual = y_annual.iloc[:, 5:]
-    y_quarter = y_quarter.loc[[(permno, x_qy, x_qq)], :]
-    y_quarter = y_quarter.iloc[:, 5:]
 
-    # Filter Data
-    x_line = pd.concat([x_index.reset_index(drop=True), x_annual.reset_index(drop=True),
-                        x_quarter.reset_index(drop=True), x_month.reset_index(drop=True)], axis=1)
+    if np.shape(x_annual)[0] == 1 and np.shape(x_quarter)[0] == 1 and np.shape(x_month)[0] == 1 and np.shape(y_annual)[0] == 1:
+        sic = x_annual['sic'][0]
+        industrial = industrial.loc[[(x_ay, sic)], :]
 
-    adhoc_a_filter = ['revt', 'ebit', 'ebitda', 're', 'epspi', 'gma', 'operprof', 'quick', 'currat',
-                       'cashrrat', 'cftrr', 'dpr', 'pe', 'pb', 'roe', 'roa', 'roic', 'cod', 'capint', 'lev']
-    adhoc_a_filter = adhoc_a_filter + [_ + '_aoa' for _ in adhoc_a_filter] + [_ + '_5o5' for _ in adhoc_a_filter]
-    y_annual = y_annual[adhoc_a_filter]
-
-    # adhoc_q_filter = ['revtq', 'req', 'epspiq', 'quickq', 'curratq', 'cashrratq', 'peq', 'roeq', 'roaq']
-    # adhoc_q_filter = adhoc_q_filter + [_ + '_aoa' for _ in adhoc_q_filter] + [_ + '_5o5' for _ in adhoc_q_filter]
-    # y_quarter = y_quarter[adhoc_q_filter]
-
-    if np.shape(x_line)[0] != 1 and np.shape(y_annual)[0] != 1 and np.shape(y_quarter)[0] != 1:
-        x_line.drop(x_line.index, inplace=True)
-        y_annual.drop(y_annual.index, inplace=True)
-        # y_quarter.drop(y_quarter.index, inplace=True)
-
-    x_line = pd.concat([x_line, y_annual.reset_index(drop=True)], axis=1)
+        x_line = pd.concat([x_index.reset_index(drop=True), x_annual.reset_index(drop=True),
+                            x_quarter.reset_index(drop=True), x_month.reset_index(drop=True),
+                            y_annual.reset_index(drop=True), industrial.reset_index(drop=True)], axis=1)
+    else:
+        x_line = pd.DataFrame(columns=list(x_index.columns) + list(x_annual.columns) + list(x_quarter.columns) +
+                                      list(x_month.columns) + list(y_annual.columns + list(industrial.columns)))
 
     return x_line
 
@@ -96,11 +96,12 @@ def build_y_line(permno, y_annual, y_quarter, y_ay, y_qy, y_qq, date):
     y_quarter = y_quarter.iloc[:, 5:]
 
     # Filter Data
-    y_line = pd.concat([y_index.reset_index(drop=True), y_annual.reset_index(drop=True),
-                        y_quarter.reset_index(drop=True)], axis=1)
+    if np.shape(y_index)[0] == 1 and np.shape(y_annual)[0] == 1 and np.shape(y_quarter)[0] == 1:
+        y_line = pd.concat([y_index.reset_index(drop=True), y_annual.reset_index(drop=True),
+                            y_quarter.reset_index(drop=True)], axis=1)
 
-    if np.shape(y_line)[0] != 1:
-        y_line.drop(y_line.index, inplace=True)
+    else:
+        y_line = pd.DataFrame(columns=y_index.columns + y_annual.columns + y_quarter.columns)
 
     return y_line, y_my, y_mm
 
@@ -113,7 +114,7 @@ def build_xy(year, dy, dq, group):
 
     y_annual.dropna(subset=[date], inplace=True, axis=0)
     y_quarter.dropna(subset=[date + 'q'], inplace=True, axis=0)
-    permnos = list(set(ccm['permno']))
+    permnos = tuple([_ for _ in ccm['permno'] if str(_)[:2] == group])
 
     x_df_ = pd.DataFrame()
     y_df_ = pd.DataFrame()
@@ -130,7 +131,8 @@ def build_xy(year, dy, dq, group):
             try:
                 y_line, y_my, y_mm = build_y_line(permno, y_annual, y_quarter, y_ay, y_qy, y_qq, date)
                 x_ay, x_qy, x_qq, x_my, x_mm = horizon(y_ay, y_qy, y_qq, y_my, y_mm, dy, dq)
-                x_line = build_x_line(permno, x_annual, x_quarter, x_month, y_annual, y_quarter, x_ay, x_qy, x_qq, x_my, x_mm)
+                industrial = load_industrial(x_ay, 'c')
+                x_line = build_x_line(permno, x_annual, x_quarter, x_month, y_annual, industrial, x_ay, x_qy, x_qq, x_my, x_mm)
 
                 if np.shape(y_line)[0] == 1 and np.shape(x_line)[0] == 1:
                     x_df_ = pd.concat([x_df_, x_line], axis=0)
@@ -147,11 +149,10 @@ def build_xy(year, dy, dq, group):
 
 
 def run_build_xy(year, dy=1, dq=0):
-    alphabet = [_ for _ in string.ascii_uppercase]
     print(f'{datetime.datetime.now()} Working on year {year}')
     x_df = pd.DataFrame()
     y_df = pd.DataFrame()
-    for group in alphabet:
+    for group in groups:
         print(f'{datetime.datetime.now()} Working on group {group}')
         x_df_, y_df_ = build_xy(year, dy, dq, group)
         x_df = pd.concat([x_df, x_df_], axis=0)
@@ -196,7 +197,7 @@ def run_load_xy(years, set_name, dy=1, dq=0, save_dir='xy_data'):
 
 
 if __name__ == '__main__':
-    years = np.arange(1974, 2020)
-    pool = Pool(16)
-    pool.map(run_build_xy, years)
-    # run_build_xy(2017)
+    # years = np.arange(1974, 2020)
+    # pool = Pool(16)
+    # pool.map(run_build_xy, years)
+    run_build_xy(2017)
