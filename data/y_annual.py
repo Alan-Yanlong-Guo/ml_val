@@ -8,8 +8,8 @@ def build_compa(permnos):
     gvkeys = permnos_to_gvkeys(permnos)
     compa = conn.raw_sql(f"""
                          select
-                         fyear, apdedate, datadate, pdate, fdate, f.gvkey, REVT, EBIT, EBITDA, RE, EPSPI, GP, 
-                         OPITI, ACT, INVT, LCT, CH, OANCF, DVP,  DVC, PRSTKC, NI, CSHO, PRCC_F, mkvalt, BKVLPS, AT, LT, 
+                         fyear, apdedate, datadate, pdate, fdate, f.gvkey, REVT, EBIT, EBITDA, RE, EPSPI, GP, OPITI, 
+                         ACT, INVT, LCT, CH, OANCF, DVP,  DVC, PRSTKC, NI, CSHO, PRCC_F, mkvalt, BKVLPS, AT, LT, 
                          DVT, ICAPT, XINT, DLCCH, DLTT, GDWL, GWO, CAPX, DLC, SEQ
                          from comp.funda as f
                          where f.gvkey in {gvkeys}
