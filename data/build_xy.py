@@ -6,6 +6,7 @@ from tools.utils import horizon
 import numpy as np
 import datetime
 from tools.utils import x_filter
+from multiprocessing import Pool
 
 
 def load_x_y(group):
@@ -126,18 +127,14 @@ def build_xy(year, dy, dq, aq, group):
     x_df_, y_df_ = pd.DataFrame(), pd.DataFrame()
     permnos = tuple([_ for _ in ccm['permno'] if str(_).zfill(4)[:2] == group])
     y_qy = year
-    print('y_qy', y_qy)
     quarters = [4] if aq == 'a' else [1, 2, 3, 4]
     for quarter in quarters:
         y_qq = quarter
         y_ay = year if y_qq == 4 else year - 1
-        print('y_qq', y_qq)
-        print('y_ay', y_ay)
         for permno in permnos:
             try:
                 y_line, y_my, y_mm = build_y_line(permno, date_type, y_annual, y_quarter, y_ay, y_qy, y_qq, aq)
                 x_ay, x_qy, x_qq, x_my, x_mm = horizon(y_ay, y_qy, y_qq, y_my, y_mm, dy, dq)
-                print('x_ay, x_qy, x_qq, x_my, x_mm', x_ay, x_qy, x_qq, x_my, x_mm)
                 x_line = build_x_line(permno, x_annual, x_quarter, x_month, y_annual, y_quarter, x_ay, x_qy, x_qq, x_my, x_mm, aq)
 
                 if np.shape(y_line)[0] == 1 and np.shape(x_line)[0] == 1:
@@ -187,7 +184,6 @@ def run_load_xy(years, set_name, dy=1, dq=0, save_dir='xy_data'):
             x_df_ = pickle.load(handle)
         with open(os.path.join(DATA_FOLDER, folder, '_'.join(['y', str(year)]) + '.pkl'), 'rb') as handle:
             y_df_ = pickle.load(handle)
-        print(year, x_df_.shape, y_df_.shape)
         x_df_set = pd.concat([x_df_set, x_df_], axis=0)
         y_df_set = pd.concat([y_df_set, y_df_], axis=0)
 
@@ -199,7 +195,7 @@ def run_load_xy(years, set_name, dy=1, dq=0, save_dir='xy_data'):
 
 
 if __name__ == '__main__':
-    # years = np.arange(1975, 2020)
-    # pool = Pool(16)
-    # pool.map(run_build_xy, years)
-    run_build_xy(2017)
+    years = np.arange(1975, 2020)
+    pool = Pool(16)
+    pool.map(run_build_xy, years)
+    # run_build_xy(2017)
