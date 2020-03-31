@@ -4,8 +4,6 @@ from data.x_month import build_temp6
 from global_settings import DATA_FOLDER, ccm, groups
 import os
 import pickle
-from datetime import datetime
-import numpy as np
 
 
 def run_build_ccm_jun(permnos, group):

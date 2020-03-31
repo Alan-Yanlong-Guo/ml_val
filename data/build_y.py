@@ -1,12 +1,10 @@
 from data.y_annual import build_compa
 from data.y_quarter import build_compq
 import pandas as pd
-from global_settings import DATA_FOLDER, ccm, groups
+from global_settings import DATA_FOLDER, ccm
 from tools.utils import y_filter
-from datetime import datetime
 import pickle
 import os
-import numpy as np
 
 
 def run_build_annual_y(permnos, group):
