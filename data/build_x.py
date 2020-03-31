@@ -7,7 +7,6 @@ import pickle
 import string
 from multiprocessing import Pool
 
-
 def run_build_ccm_jun(tics, group):
     comp = build_comp(tics)
     crsp_m = build_crsp_m(tics)
@@ -21,7 +20,6 @@ def run_build_ccm_jun(tics, group):
 
     return ccm_jun
 
-
 def run_build_compq6(tics, group, ccm_jun):
     compq6, temp2 = build_compq6(tics, ccm_jun)
 
@@ -30,20 +28,17 @@ def run_build_compq6(tics, group, ccm_jun):
 
     return compq6, temp2
 
-
 def run_build_temp6(tics, group, temp2, compq6):
     temp6 = build_temp6(tics, temp2, compq6)
 
     with open(os.path.join(DATA_FOLDER, 'month_x', '_'.join(['x', group]) + '.pkl'), 'wb') as handle:
         pickle.dump(temp6, handle)
 
-
 def run_build_x(group):
     tics = tuple([symbol for symbol in links_df['SYMBOL'] if symbol[0] == group])
     ccm_jun = run_build_ccm_jun(tics, group)
     compq6, temp2 = run_build_compq6(tics, group, ccm_jun)
     run_build_temp6(tics, group, temp2, compq6)
-
 
 if __name__ == '__main__':
     alphabet = [_ for _ in string.ascii_uppercase]
