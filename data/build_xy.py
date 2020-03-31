@@ -74,12 +74,11 @@ def build_x_line(permno, x_annual, x_quarter, x_month, y_annual, y_quarter, x_ay
 
     if np.shape(x_annual)[0] == 1 and np.shape(x_quarter)[0] == 1 and np.shape(x_month)[0] == 1 and np.shape(x_line_y)[0] == 1:
         sic_c, sic_f = str(x_annual['sic'][0]).zfill(4)[:1], str(x_annual['sic'][0]).zfill(4)[:2]
-        industrial_c = industrial_c.loc[[(x_ay, sic_c)], :]
-        industrial_f = industrial_c.loc[[(x_ay, sic_f)], :]
+        industrial_c, industrial_f = industrial_c.loc[[(x_ay, sic_c)], :], industrial_f.loc[[(x_ay, sic_f)], :]
 
         x_line = pd.concat([x_index.reset_index(drop=True), x_annual.reset_index(drop=True),
                             x_quarter.reset_index(drop=True), x_month.reset_index(drop=True),
-                            x_line_y, industrial_c.reset_index(drop=True),
+                            x_line_y.reset_index(drop=True), industrial_c.reset_index(drop=True),
                             industrial_f.reset_index(drop=True)], axis=1)
         x_line.index = x_index.index
 
@@ -156,6 +155,7 @@ def run_build_xy(year, dy=1, dq=0, aq='q'):
     for group in groups:
         print(f'{datetime.datetime.now()} Working on group {group}')
         x_df_, y_df_ = build_xy(year, dy, dq, aq, group)
+        print(f'{datetime.datetime.now()} Finished on group {group} x shape: {x_df_.shape} y shape: {y_df_.shape}')
         x_df = pd.concat([x_df, x_df_], axis=0)
         y_df = pd.concat([y_df, y_df_], axis=0)
 
@@ -195,7 +195,7 @@ def run_load_xy(years, set_name, dy=1, dq=0, save_dir='xy_data'):
 
 
 if __name__ == '__main__':
-    years = np.arange(1975, 2020)
-    pool = Pool(16)
-    pool.map(run_build_xy, years)
-    # run_build_xy(2017)
+    # years = np.arange(1975, 2020)
+    # pool = Pool(16)
+    # pool.map(run_build_xy, years)
+    run_build_xy(2017)
