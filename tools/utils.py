@@ -1,7 +1,7 @@
 from global_settings import link_df, ccm
+from global_settings import TOOLS_FOLDER
 import pandas as pd
 import os
-from global_settings import TOOLS_FOLDER
 
 
 def permnos_to_gvkeys(permnos):
