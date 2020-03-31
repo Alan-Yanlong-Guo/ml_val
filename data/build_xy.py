@@ -170,8 +170,8 @@ def run_build_xy(year, dy=1, dq=0, aq='q'):
         pickle.dump(y_df, handle)
 
 
-def run_load_xy(years, set_name, dy=1, dq=0, save_dir='xy_data'):
-    folder = '_'.join(['xy', 'q', str(dy), str(dq)])
+def run_load_xy(years, set_name, dy=1, dq=0, aq='q', save_dir='xy_data'):
+    folder = '_'.join(['xy', aq, str(dy), str(dq)])
     if not os.path.exists(os.path.join(DATA_FOLDER, folder)):
         raise Exception('Preprocessed xy data folder not found')
     if not os.path.exists(os.path.join(DATA_FOLDER, save_dir)):
