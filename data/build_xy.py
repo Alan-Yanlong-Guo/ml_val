@@ -65,6 +65,7 @@ def build_x_line(permno, x_annual, x_quarter, x_month, y_annual, industrial, x_a
     y_annual = y_annual.iloc[:, 5:]
 
     if np.shape(x_annual)[0] == 1 and np.shape(x_quarter)[0] == 1 and np.shape(x_month)[0] == 1 and np.shape(y_annual)[0] == 1:
+        print(len(str(x_annual['sic'][0])))
         sic = str(x_annual['sic'][0])[:1] if cf == 'c' else str(x_annual['sic'][0])[:2]
         industrial = industrial.loc[[(x_ay, sic)], :]
 

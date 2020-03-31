@@ -36,11 +36,13 @@ def run_build_temp6(group, temp2, compq6):
     with open(os.path.join(DATA_FOLDER, 'month_x', '_'.join(['x', group]) + '.pkl'), 'wb') as handle:
         pickle.dump(temp6, handle)
 
+
 def run_build_x(group):
     permnos = tuple([_ for _ in ccm['permno'] if str(_)[:2] == group])
     ccm_jun = run_build_ccm_jun(permnos, group)
     compq6, temp2 = run_build_compq6(permnos, group, ccm_jun)
     run_build_temp6(group, temp2, compq6)
+
 
 if __name__ == '__main__':
     for group in groups:
