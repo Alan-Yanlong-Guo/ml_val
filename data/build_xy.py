@@ -75,6 +75,8 @@ def build_x_line(permno, x_annual, x_quarter, x_month, y_annual, y_quarter, indu
                             x_quarter.reset_index(drop=True), x_month.reset_index(drop=True),
                             y_annual.reset_index(drop=True), y_quarter.reset_index(drop=True),
                             industrial.reset_index(drop=True)], axis=1)
+        x_line.index = x_index.index
+
     else:
         x_line = pd.DataFrame(columns=list(x_index.columns) + list(x_annual.columns) + list(x_quarter.columns) +
                                       list(x_month.columns) + list(y_annual.columns) + list(industrial.columns))
@@ -100,6 +102,7 @@ def build_y_line(permno, y_annual, y_quarter, y_ay, y_qy, y_qq, date):
     if np.shape(y_index)[0] == 1 and np.shape(y_annual)[0] == 1 and np.shape(y_quarter)[0] == 1:
         y_line = pd.concat([y_index.reset_index(drop=True), y_annual.reset_index(drop=True),
                             y_quarter.reset_index(drop=True)], axis=1)
+        y_line.index = y_index.index
 
     else:
         y_line = pd.DataFrame(columns=list(y_index.columns) + list(y_annual.columns) + list(y_quarter.columns))
