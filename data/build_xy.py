@@ -4,7 +4,6 @@ import pandas as pd
 from global_settings import DATA_FOLDER, ccm, groups
 from tools.utils import horizon
 import numpy as np
-import string
 import datetime
 from tools.utils import x_filter
 
@@ -51,7 +50,7 @@ def load_industrial(year, cf):
     return industrial
 
 
-def build_x_line(permno, x_annual, x_quarter, x_month, y_annual, industrial, x_ay, x_qy, x_qq, x_my, x_mm):
+def build_x_line(permno, x_annual, x_quarter, x_month, y_annual, industrial, x_ay, x_qy, x_qq, x_my, x_mm, cf):
     # Slice Data
     x_annual = x_annual.loc[[(permno, x_ay, 4)], :]
     x_annual = x_annual.iloc[:, 5:]
@@ -66,7 +65,7 @@ def build_x_line(permno, x_annual, x_quarter, x_month, y_annual, industrial, x_a
     y_annual = y_annual.iloc[:, 5:]
 
     if np.shape(x_annual)[0] == 1 and np.shape(x_quarter)[0] == 1 and np.shape(x_month)[0] == 1 and np.shape(y_annual)[0] == 1:
-        sic = x_annual['sic'][0]
+        sic = str(x_annual['sic'][0])[:1] if cf == 'c' else str(x_annual['sic'][0])[:2]
         industrial = industrial.loc[[(x_ay, sic)], :]
 
         x_line = pd.concat([x_index.reset_index(drop=True), x_annual.reset_index(drop=True),
@@ -74,7 +73,9 @@ def build_x_line(permno, x_annual, x_quarter, x_month, y_annual, industrial, x_a
                             y_annual.reset_index(drop=True), industrial.reset_index(drop=True)], axis=1)
     else:
         x_line = pd.DataFrame(columns=list(x_index.columns) + list(x_annual.columns) + list(x_quarter.columns) +
-                                      list(x_month.columns) + list(y_annual.columns + list(industrial.columns)))
+                                      list(x_month.columns) + list(y_annual.columns) + list(industrial.columns))
+
+    x_line.drop(['sic'], axis=1, inplace=True)
 
     return x_line
 
@@ -101,12 +102,12 @@ def build_y_line(permno, y_annual, y_quarter, y_ay, y_qy, y_qq, date):
                             y_quarter.reset_index(drop=True)], axis=1)
 
     else:
-        y_line = pd.DataFrame(columns=y_index.columns + y_annual.columns + y_quarter.columns)
+        y_line = pd.DataFrame(columns=list(y_index.columns) + list(y_annual.columns) + list(y_quarter.columns))
 
     return y_line, y_my, y_mm
 
 
-def build_xy(year, dy, dq, group):
+def build_xy(year, dy, dq, group, cf):
     y_annual, y_quarter, x_annual, x_quarter, x_month = load_x_y(group)
     y_quarter.rename(columns={'datadate': 'datadateq'}, inplace=True)
     x_month.rename(columns={'datadate': 'datadateq'}, inplace=True)
@@ -131,8 +132,8 @@ def build_xy(year, dy, dq, group):
             try:
                 y_line, y_my, y_mm = build_y_line(permno, y_annual, y_quarter, y_ay, y_qy, y_qq, date)
                 x_ay, x_qy, x_qq, x_my, x_mm = horizon(y_ay, y_qy, y_qq, y_my, y_mm, dy, dq)
-                industrial = load_industrial(x_ay, 'c')
-                x_line = build_x_line(permno, x_annual, x_quarter, x_month, y_annual, industrial, x_ay, x_qy, x_qq, x_my, x_mm)
+                industrial = load_industrial(x_ay, cf)
+                x_line = build_x_line(permno, x_annual, x_quarter, x_month, y_annual, industrial, x_ay, x_qy, x_qq, x_my, x_mm, cf)
 
                 if np.shape(y_line)[0] == 1 and np.shape(x_line)[0] == 1:
                     x_df_ = pd.concat([x_df_, x_line], axis=0)
@@ -148,13 +149,13 @@ def build_xy(year, dy, dq, group):
     return x_df_, y_df_
 
 
-def run_build_xy(year, dy=1, dq=0):
+def run_build_xy(year, cf, dy=1, dq=0):
     print(f'{datetime.datetime.now()} Working on year {year}')
     x_df = pd.DataFrame()
     y_df = pd.DataFrame()
     for group in groups:
         print(f'{datetime.datetime.now()} Working on group {group}')
-        x_df_, y_df_ = build_xy(year, dy, dq, group)
+        x_df_, y_df_ = build_xy(year, dy, dq, group, cf)
         x_df = pd.concat([x_df, x_df_], axis=0)
         y_df = pd.concat([y_df, y_df_], axis=0)
 
@@ -200,4 +201,4 @@ if __name__ == '__main__':
     # years = np.arange(1974, 2020)
     # pool = Pool(16)
     # pool.map(run_build_xy, years)
-    run_build_xy(2017)
+    run_build_xy(2017, 'c')
