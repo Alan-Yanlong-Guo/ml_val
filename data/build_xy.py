@@ -6,7 +6,6 @@ from tools.utils import horizon
 import numpy as np
 import datetime
 from tools.utils import x_filter
-from multiprocessing import Pool
 
 
 def load_x_y(group):
@@ -86,11 +85,7 @@ def build_y_line(permno, y_annual, y_quarter, y_ay, y_qy, y_qq, date):
     y_annual[date] = pd.to_datetime(y_annual[date])
     y_quarter[date + 'q'] = pd.to_datetime(y_quarter[date + 'q'])
 
-    if y_qq == 4:
-        y_annual = y_annual.loc[[(permno, y_ay, 4)], :]
-    else:
-        y_annual = y_annual.loc[[(permno, y_ay-1, 4)], :]
-
+    y_annual = y_annual.loc[[(permno, y_ay, 4)], :]
     y_annual = y_annual.iloc[:, 5:]
     y_quarter = y_quarter.loc[[(permno, y_qy, y_qq)], :]
     y_index = y_quarter.iloc[:, :5]
@@ -126,10 +121,7 @@ def build_xy(year, dy, dq, group, cf):
         y_qy = year
         for quarter in [1, 2, 3, 4]:
             y_qq = quarter
-            if quarter == 4:
-                y_ay = year
-            else:
-                y_ay = year - 1
+            y_ay = year if y_qq == 4 else year - 1
             try:
                 y_line, y_my, y_mm = build_y_line(permno, y_annual, y_quarter, y_ay, y_qy, y_qq, date)
                 x_ay, x_qy, x_qq, x_my, x_mm = horizon(y_ay, y_qy, y_qq, y_my, y_mm, dy, dq)
@@ -152,8 +144,7 @@ def build_xy(year, dy, dq, group, cf):
 
 def run_build_xy(year, cf='c', dy=1, dq=0):
     print(f'{datetime.datetime.now()} Working on year {year}')
-    x_df = pd.DataFrame()
-    y_df = pd.DataFrame()
+    x_df, y_df = pd.DataFrame(), pd.DataFrame()
     for group in groups:
         print(f'{datetime.datetime.now()} Working on group {group}')
         x_df_, y_df_ = build_xy(year, dy, dq, group, cf)
@@ -199,7 +190,7 @@ def run_load_xy(years, set_name, dy=1, dq=0, save_dir='xy_data'):
 
 
 if __name__ == '__main__':
-    years = np.arange(1960, 2020)
-    pool = Pool(16)
-    pool.map(run_build_xy, years)
-    # run_build_xy(2017, 'c')
+    # years = np.arange(1960, 2020)
+    # pool = Pool(8)
+    # pool.map(run_build_xy, years)
+    run_build_xy(2017)

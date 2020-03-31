@@ -44,8 +44,9 @@ def tic_unique():
 
 
 def horizon(y_ay, y_qy, y_qq, y_my, y_mm, dy, dq):
-    assert type(dy) == int and dy > 0, 'Invalid dy value'
-    assert type(dq) == int and dq in [0, 1, 2, 3], 'Invalid dq value'
+    assert type(dy) is int and dy >= 0, 'Invalid dy value'
+    assert type(dq) is int and dq in [0, 1, 2, 3], 'Invalid dq value'
+    assert dq + dy != 0, 'Invalid dy and dq value'
 
     x_ay = y_ay - dy
     if y_qq - dq < 0:

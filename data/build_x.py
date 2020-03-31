@@ -5,6 +5,7 @@ from global_settings import DATA_FOLDER, ccm, groups
 import os
 import pickle
 from datetime import datetime
+import numpy as np
 
 
 def run_build_ccm_jun(permnos, group):
@@ -45,6 +46,11 @@ def run_build_x(group):
 
 
 if __name__ == '__main__':
-    for group in groups:
-        print(f'{datetime.now()} Working on group with permno starting with ' + group)
-        run_build_x(group)
+    group = '26'
+    run_build_x(group)
+    permnos = tuple([_ for _ in ccm['permno'] if str(_)[:2] == group])
+    run_build_ccm_jun(permnos, group)
+
+    # for group in groups:
+    #     print(f'{datetime.now()} Working on group with permno starting with ' + group)
+    #     run_build_x(group)
