@@ -1,18 +1,18 @@
 import pandas as pd
 import numpy as np
-from tools.utils import tics_to_permnos
 from global_settings import conn
+from tools.utils import permnos_to_gvkeys
 
 
-def build_compq6(tics, ccm_jun):
-    permno = tics_to_permnos(tics)
+def build_compq6(permnos, ccm_jun):
+    gvkeys = permnos_to_gvkeys(permnos)
 
     def lag(df, col, n=1, on='gvkey'):
         return df.groupby(on)[col].shift(n)
 
     lnk = conn.raw_sql(f"""
                          select * from crsp.ccmxpf_linktable
-                         where lpermno in {permno}
+                         where lpermno in {permnos}
                          """)
     lnk = lnk[lnk['linktype'].isin(['LU','LC','LD','LF','LN','LO','LS','LX'])]
     lnk = lnk[(2018 >= lnk['linkdt'].astype(str).str[0:4].astype(int)) | (lnk['linkdt'] == '.B') ]
@@ -45,7 +45,7 @@ def build_compq6(tics, ccm_jun):
 
     crsp_msf = conn.raw_sql(f"""
                           select ret, retx, prc, shrout, vol, date, permno from crsp.msf
-                          where permno in {permno}
+                          where permno in {permnos}
                           """)
     crsp_msf = crsp_msf[crsp_msf['permno'].isin(temp['permno'])]
     crsp_msf['date'] = pd.to_datetime(crsp_msf['date'])
@@ -61,7 +61,7 @@ def build_compq6(tics, ccm_jun):
     temp2 = pd.merge(z, temp, on=['permno','datadate'], how='left')
     crsp_mseall = conn.raw_sql(f"""
                               select date, permno, exchcd, shrcd, siccd from crsp.mseall 
-                              where permno in {permno}
+                              where permno in {permnos}
                               and exchcd in (1, 2, 3) and shrcd in (10, 11)
                               """)
     crsp_mseall = crsp_mseall.sort_values(['permno','exchcd','date'])
@@ -81,7 +81,7 @@ def build_compq6(tics, ccm_jun):
 
     crsp_mseall_dl = conn.raw_sql(f"""
                                   select dlret, dlstcd, exchcd, date, permno from crsp.mseall
-                                  where permno in {permno}
+                                  where permno in {permnos}
                                   """)
     crsp_mseall_dl['date'] = pd.to_datetime(crsp_mseall_dl['date'])
     temp2 = pd.merge(temp2, crsp_mseall_dl, on=['date', 'permno'])
@@ -111,7 +111,7 @@ def build_compq6(tics, ccm_jun):
                             dpq, oibdpq, cshprq, ajexq, oiadpq, ivaoq, mibq, xintq, drcq, drltq, apq,
                             abs(prccq) as prccq, abs(prccq)*cshoq as mveq, ceqq, seqq, pstkq, atq, ltq, pstkrq
                             from comp.names as c, comp.fundq as f
-                            where f.tic in {tics}
+                            where c.gvkey in {gvkeys}
                             and f.gvkey = c.gvkey
                             and f.indfmt='INDL'
                             and f.datafmt='STD'
@@ -236,40 +236,41 @@ def build_compq6(tics, ccm_jun):
     compq3.loc[compq3['sgrvol'] < compq3['md_sgrvol'], 'm8'] = 1
     compq3.loc[compq3['sgrvol'] >= compq3['md_sgrvol'], 'm8'] = 0
 
-    ibessum = conn.raw_sql(f"""
-                            select ticker, cusip, fpedats, statpers, ANNDATS_ACT,
-                            numest, ANNTIMS_ACT, medest, actual, stdev
-                            from ibes.statsum_epsus
-                            where ticker in {tics}
-                            and fpi='6'
-                            and statpers<ANNDATS_ACT
-                            and measure='EPS'
-                            and (fpedats-statpers)>=0
-                            """)
-    ibessum = ibessum[(ibessum['medest'].notna()) & (ibessum['fpedats'].notna())]
-    ibessum = ibessum.sort_values(by=['cusip','fpedats','statpers'], ascending=[True,True,False])
-    ibessum = ibessum.drop_duplicates(['cusip', 'fpedats'])
-
-    crsp_msenames = conn.raw_sql("""select * from crsp.msenames""")
-    crsp_msenames = crsp_msenames[crsp_msenames['ncusip'].notna()]
-    crsp_msenames = crsp_msenames.sort_values(['permno','ncusip'])
-    crsp_msenames = crsp_msenames.drop_duplicates(['permno','ncusip'])
-    names = crsp_msenames.rename(columns={'cusip':'cusip6'})
-
-    ibessum2 = pd.merge(ibessum, names[['ncusip','cusip6']], left_on='cusip', right_on=['ncusip'], how='left')
-    ibessum2['cusip6'] = ibessum2['cusip6'].astype(str).str[0:6]
+    # ibessum = conn.raw_sql(f"""
+    #                         select ticker, cusip, fpedats, statpers, ANNDATS_ACT,
+    #                         numest, ANNTIMS_ACT, medest, actual, stdev
+    #                         from ibes.statsum_epsus
+    #                         where ticker in {tics}
+    #                         and fpi='6'
+    #                         and statpers<ANNDATS_ACT
+    #                         and measure='EPS'
+    #                         and (fpedats-statpers)>=0
+    #                         """)
+    # ibessum = ibessum[(ibessum['medest'].notna()) & (ibessum['fpedats'].notna())]
+    # ibessum = ibessum.sort_values(by=['cusip','fpedats','statpers'], ascending=[True,True,False])
+    # ibessum = ibessum.drop_duplicates(['cusip', 'fpedats'])
+    #
+    # crsp_msenames = conn.raw_sql("""select * from crsp.msenames""")
+    # crsp_msenames = crsp_msenames[crsp_msenames['ncusip'].notna()]
+    # crsp_msenames = crsp_msenames.sort_values(['permno','ncusip'])
+    # crsp_msenames = crsp_msenames.drop_duplicates(['permno','ncusip'])
+    # names = crsp_msenames.rename(columns={'cusip':'cusip6'})
+    #
+    # ibessum2 = pd.merge(ibessum, names[['ncusip','cusip6']], left_on='cusip', right_on=['ncusip'], how='left')
+    # ibessum2['cusip6'] = ibessum2['cusip6'].astype(str).str[0:6]
 
     compq3['cnum'] = compq3['cnum'].astype(str).str[0:6]
-    compq4 = pd.merge(compq3, ibessum2[['medest','actual','cusip6','fpedats']], left_on=['cnum','datadate_q'], right_on=['cusip6','fpedats'], how='left')
+    # compq4 = pd.merge(compq3, ibessum2[['medest','actual','cusip6','fpedats']], left_on=['cnum','datadate_q'], right_on=['cusip6','fpedats'], how='left')
+    compq4 = compq3
     compq4 = compq4.sort_values(['gvkey','datadate_q'])
     compq4 = compq4.drop_duplicates(['gvkey','datadate_q'])
 
-    compq4.loc[(compq4['medest'].isna()) | (compq4['actual']).isna(), 'sue'] = compq4['che']/compq4['mveq']
-    compq4.loc[(compq4['medest'].notna()) & (compq4['actual']).notna(), 'sue'] = (compq4['actual'] - compq4['medest'])/abs(compq4['prccq'])
+    # compq4.loc[(compq4['medest'].isna()) | (compq4['actual']).isna(), 'sue'] = compq4['che']/compq4['mveq']
+    # compq4.loc[(compq4['medest'].notna()) & (compq4['actual']).notna(), 'sue'] = (compq4['actual'] - compq4['medest'])/abs(compq4['prccq'])
 
     lnk = conn.raw_sql(f"""
                         select * from crsp.ccmxpf_linktable
-                        where lpermno in {permno}
+                        where lpermno in {permnos}
                         """)
     lnk = lnk[lnk['linktype'].isin(['LU','LC','LD','LF','LN','LO','LS','LX'])]
     lnk = lnk[(2018 >= lnk['linkdt'].astype(str).str[0:4].astype(int)) | (lnk['linkdt'] == '.B') ]
@@ -284,7 +285,7 @@ def build_compq6(tics, ccm_jun):
 
     crsp_dsf = conn.raw_sql(f"""
                           select vol, ret, permno, date from crsp.dsf as d
-                          where d.permno in {permno}
+                          where d.permno in {permnos}
                           """)
     crsp_dsf = crsp_dsf[crsp_dsf['permno'].isin(compq5['lpermno'])]
     crsp_dsf['date'] = pd.to_datetime(crsp_dsf['date'])
@@ -305,7 +306,7 @@ def build_compq6(tics, ccm_jun):
                      'rdq', 'chtx', 'roaq', 'rsup', 'stdacc', 'stdcf', 'sgrvol', 'rdmq', 'rdsq', 'olq', 'tanq', 'kzq',
                      'alaq', 'almq', 'laq', 'bmq', 'dmq', 'amq', 'epq', 'cpq', 'emq', 'spq', 'ndpq', 'ebpq', 'wwq',
                      'rs', 'droeq', 'droaq', 'noaq', 'rnaq', 'pmq', 'atoq', 'ctoq', 'glaq', 'oleq', 'olaq', 'claq',
-                     'blq', 'sgq', 'sue', 'roavol', 'cash', 'cinvest', 'm7', 'm8', 'prccq', 'roeq', 'aeavol', 'ear']]
+                     'blq', 'sgq', 'roavol', 'cash', 'cinvest', 'm7', 'm8', 'prccq', 'roeq', 'aeavol', 'ear']]
 
     compq6 = compq6.drop_duplicates()
 

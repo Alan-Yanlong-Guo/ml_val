@@ -1,17 +1,18 @@
 import pandas as pd
 import numpy as np
-from tools.utils import tic_to_permno
+from tools.utils import permnos_to_gvkeys, gvkey_to_permno
 from global_settings import conn
 
 
-def build_compa(tics):
+def build_compa(permnos):
+    gvkeys = permnos_to_gvkeys(permnos)
     compa = conn.raw_sql(f"""
                          select
                          fyear, apdedate, datadate, pdate, fdate, f.gvkey, REVT, EBIT, EBITDA, RE, EPSPI, GP, 
                          OPITI, ACT, INVT, LCT, CH, OANCF, DVP,  DVC, PRSTKC, NI, CSHO, PRCC_F, mkvalt, BKVLPS, AT, LT, 
-                         DVT, ICAPT, XINT, DLCCH, DLTT, GDWL, GWO, CAPX, DLC, SEQ, tic
+                         DVT, ICAPT, XINT, DLCCH, DLTT, GDWL, GWO, CAPX, DLC, SEQ
                          from comp.funda as f
-                         where tic in {tics}
+                         where f.gvkey in {gvkeys}
                          and REVT != 'NaN' 
                          and f.indfmt='INDL'
                          and f.datafmt='STD'
@@ -23,8 +24,7 @@ def build_compa(tics):
     compa['fyear'].astype(int)
     compa['fqtr'] = 4
     compa['datadate'] = pd.to_datetime(compa['datadate'])
-    compa['permno'] = compa['tic'].apply(tic_to_permno)
-    compa.drop(['tic'], axis=1, inplace=True)
+    compa['permno'] = compa['gvkey'].apply(gvkey_to_permno)
 
     compa['gma'] = compa['gp'] / compa['revt']
     compa['operprof'] = compa['opiti'] / compa['revt']

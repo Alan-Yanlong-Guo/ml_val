@@ -1,6 +1,6 @@
 import pandas as pd
 import numpy as np
-from tools.utils import tics_to_permnos
+from tools.utils import permnos_to_gvkeys
 from pandas.tseries.offsets import *
 from global_settings import conn
 
@@ -9,7 +9,8 @@ def lag(df, col, n=1, on='gvkey'):
     return df.groupby(on)[col].shift(n)
 
 
-def build_comp(tics):
+def build_comp(permnos):
+    gvkeys = permnos_to_gvkeys(permnos)
 
     comp = conn.raw_sql(f"""
                         select
@@ -24,7 +25,7 @@ def build_comp(tics):
                         dv, dltis, dltr, dlcch, oibdp, dvpa, tstkp, oiadp, xpp, xacc, re, ppenb,
                         ppenls, capxv, fopt, wcap
                         from comp.names as c, comp.funda as f
-                        where f.tic in {tics}
+                        where c.gvkey in {gvkeys}
                         and f.gvkey=c.gvkey
                         /*get consolidated, standardized, industrial format statements*/
                         and f.indfmt='INDL'
@@ -55,7 +56,7 @@ def build_comp(tics):
     return comp
 
 
-def build_crsp_m(tics):
+def build_crsp_m(permnos):
 
     crsp_m = conn.raw_sql(f"""
                           select a.permno, a.permco, a.date, b.ticker, b.ncusip, b.shrcd, b.exchcd, b.siccd,
@@ -65,7 +66,7 @@ def build_crsp_m(tics):
                           on a.permno=b.permno
                           and b.namedt<=a.date
                           and a.date<=b.nameendt
-                          where b.ticker in {tics}
+                          where a.permno in {permnos}
                           and b.exchcd between 1 and 3
                           and b.shrcd between 10 and 11
                           """)
@@ -83,13 +84,12 @@ def build_crsp_m(tics):
     return crsp_m
 
 
-def build_dlret(tics):
-    permno = tics_to_permnos(tics)
+def build_dlret(permnos):
 
     dlret = conn.raw_sql(f"""
                          select permno, dlret, dlstdt
                          from crsp.msedelist
-                         where permno in {permno}
+                         where permno in {permnos}
                          """)
     dlret.permno = dlret.permno.astype(int)
 
@@ -149,13 +149,12 @@ def build_crsp(crsp_m, dlret):
     return crsp_jun
 
 
-def build_ccm_data(tics, comp, crsp_jun):
-    permno = tics_to_permnos(tics)
+def build_ccm_data(permnos, comp, crsp_jun):
 
     ccm = conn.raw_sql(f"""
                        select gvkey, lpermno as permno, linktype, linkprim, linkdt, linkenddt
                        from crsp.ccmxpf_linktable
-                       where lpermno in {permno}
+                       where lpermno in {permnos}
                        and substr(linktype,1,1)='L'
                        and linkprim in ('P', 'C')
                        """)

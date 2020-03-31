@@ -2,14 +2,14 @@ from data.y_annual import build_compa
 from data.y_quarter import build_compq
 import pandas as pd
 import os
-from global_settings import DATA_FOLDER, links_df
+from global_settings import DATA_FOLDER, ccm, groups
 import pickle
-import string
 from tools.utils import y_filter
+from datetime import datetime
 
 
-def run_build_annual_y(tics, group):
-    compa = build_compa(tics)
+def run_build_annual_y(permnos, group):
+    compa = build_compa(permnos)
     permnos = set(compa['permno'].tolist())
     compa_a = compa.set_index(['permno', 'fyear', 'fqtr'], inplace=False)
     compa_a = compa_a.sort_index(inplace=False)
@@ -36,8 +36,8 @@ def run_build_annual_y(tics, group):
         pickle.dump(y_a, handle)
 
 
-def run_build_quarter_y(tics, group):
-    compq = build_compq(tics)
+def run_build_quarter_y(permnos, group):
+    compq = build_compq(permnos)
     permnos = set(compq['permno'].tolist())
     compq_q = compq.set_index(['permno', 'fyearq', 'fqtr'], inplace=False)
     compq_q = compq_q.sort_index(inplace=False)
@@ -66,7 +66,7 @@ def run_build_quarter_y(tics, group):
                 compq_a_s1_ = compq_a_.shift(1)
                 compq_a_s5_ = compq_a_.shift(5)
                 compq_aoa_ = (compq_a_ / compq_a_s1_) - 1
-                compq_5o5_ = (compq_a_ / compq_a_s5_).pow(1 / 5) - 1
+                compq_5o5_ = (compq_a_ / compq_a_s5_).pow(1/5) - 1
                 compq_aoa = pd.concat([compq_aoa, compq_aoa_], axis=0)
                 compq_5o5 = pd.concat([compq_5o5, compq_5o5_], axis=0)
             except KeyError:
@@ -85,15 +85,14 @@ def run_build_quarter_y(tics, group):
 
 
 def run_build_y(group):
-    tics = tuple([symbol for symbol in links_df['SYMBOL'] if symbol[0] == group])
-    run_build_annual_y(tics, group)
-    run_build_quarter_y(tics, group)
+    permnos = tuple([_ for _ in ccm['permno'] if str(_)[:2] == group])
+    run_build_annual_y(permnos, group)
+    run_build_quarter_y(permnos, group)
 
 
 if __name__ == '__main__':
-    alphabet = [_ for _ in string.ascii_uppercase]
-    for group in alphabet:
-        print(group)
+    for group in groups:
+        print(f'{datetime.now()} Working on group with permno starting with ' + group)
         run_build_y(group)
     # pool = Pool(14)
     # pool.map(run_build_xy, years)
