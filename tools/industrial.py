@@ -75,13 +75,13 @@ def build_table(compa, compa_s1, compa_s5, year, cf):
 
     for sic in sics:
         if cf == 'c':
-            compa_ = compa[compa['sic'].apply(lambda _: str(_.zfill(4))[:1] == sic)]
-            compa_s1_ = compa_s1[compa_s1['sic'].apply(lambda _: str(_.zfill(4))[:1] == sic)]
-            compa_s5_ = compa_s5[compa_s5['sic'].apply(lambda _: str(_.zfill(4))[:1] == sic)]
+            compa_ = compa[compa['sic'].apply(lambda _: str(_).zfill(4)[:1] == sic)]
+            compa_s1_ = compa_s1[compa_s1['sic'].apply(lambda _: str(_).zfill(4)[:1] == sic)]
+            compa_s5_ = compa_s5[compa_s5['sic'].apply(lambda _: str(_).zfill(4)[:1] == sic)]
         else:
-            compa_ = compa[compa['sic'].apply(lambda _: str(_.zfill(4))[:2] == sic)]
-            compa_s1_ = compa_s1[compa_s1['sic'].apply(lambda _: str(_.zfill(4))[:2] == sic)]
-            compa_s5_ = compa_s5[compa_s5['sic'].apply(lambda _: str(_.zfill(4))[:2] == sic)]
+            compa_ = compa[compa['sic'].apply(lambda _: str(_).zfill(4)[:2] == sic)]
+            compa_s1_ = compa_s1[compa_s1['sic'].apply(lambda _: str(_).zfill(4)[:2] == sic)]
+            compa_s5_ = compa_s5[compa_s5['sic'].apply(lambda _: str(_).zfill(4)[:2] == sic)]
 
         compa_i_sum, compa_i_med, compa_j_med = sum_med(compa_, filter_list_i, filter_list_j)
         compa_i_sum_s1, compa_i_med_s1, compa_j_med_s1 = sum_med(compa_s1_, filter_list_i, filter_list_j)
