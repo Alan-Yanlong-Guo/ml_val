@@ -150,6 +150,8 @@ def run_build_xy(year, dy=1, dq=0, cf='c'):
         x_df_, y_df_ = build_xy(year, dy, dq, cf, group)
         x_df = pd.concat([x_df, x_df_], axis=0)
         y_df = pd.concat([y_df, y_df_], axis=0)
+        print(x_df)
+        print(y_df)
 
     folder = '_'.join(['xy', 'q', str(dy), str(dq)])
     if not os.path.exists(os.path.join(DATA_FOLDER, folder)):
