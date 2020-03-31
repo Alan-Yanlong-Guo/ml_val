@@ -5,7 +5,7 @@ from global_settings import DATA_FOLDER, ccm
 from tools.utils import y_filter
 import pickle
 import os
-import numpy as np
+
 
 def run_build_annual_y(permnos, group):
     compa = build_compa(permnos)

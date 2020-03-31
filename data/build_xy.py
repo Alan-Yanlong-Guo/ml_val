@@ -64,7 +64,7 @@ def build_x_line(permno, x_annual, x_quarter, x_month, y_annual, y_quarter, indu
     # Filter Data
     y_annual = y_annual.loc[[(permno, x_ay, 4)], :]
     y_annual = y_annual.iloc[:, 5:]
-    y_quarter = y_annual.loc[[(permno, x_ay, x_qq)], :]
+    y_quarter = y_quarter.loc[[(permno, x_ay, x_qq)], :]
     y_quarter = y_quarter.iloc[:, 5:]
 
     if np.shape(x_annual)[0] == 1 and np.shape(x_quarter)[0] == 1 and np.shape(x_month)[0] == 1 and np.shape(y_annual)[0] == 1:
@@ -73,7 +73,8 @@ def build_x_line(permno, x_annual, x_quarter, x_month, y_annual, y_quarter, indu
 
         x_line = pd.concat([x_index.reset_index(drop=True), x_annual.reset_index(drop=True),
                             x_quarter.reset_index(drop=True), x_month.reset_index(drop=True),
-                            y_annual.reset_index(drop=True), industrial.reset_index(drop=True)], axis=1)
+                            y_annual.reset_index(drop=True), y_quarter.reset_index(drop=True),
+                            industrial.reset_index(drop=True)], axis=1)
     else:
         x_line = pd.DataFrame(columns=list(x_index.columns) + list(x_annual.columns) + list(x_quarter.columns) +
                                       list(x_month.columns) + list(y_annual.columns) + list(industrial.columns))
@@ -106,7 +107,7 @@ def build_y_line(permno, y_annual, y_quarter, y_ay, y_qy, y_qq, date):
     return y_line, y_my, y_mm
 
 
-def build_xy(year, dy, dq, group, cf):
+def build_xy(year, dy, dq, cf, group):
     y_annual, y_quarter, x_annual, x_quarter, x_month = load_x_y(group)
     y_quarter.rename(columns={'datadate': 'datadateq'}, inplace=True)
     x_month.rename(columns={'datadate': 'datadateq'}, inplace=True)
@@ -145,18 +146,18 @@ def build_xy(year, dy, dq, group, cf):
     return x_df_, y_df_
 
 
-def run_build_xy(year, cf='c', dy=1, dq=0):
+def run_build_xy(year, dy=1, dq=0, cf='c'):
     print(f'{datetime.datetime.now()} Working on year {year}')
     x_df, y_df = pd.DataFrame(), pd.DataFrame()
     for group in groups:
         print(f'{datetime.datetime.now()} Working on group {group}')
-        x_df_, y_df_ = build_xy(year, dy, dq, group, cf)
+        x_df_, y_df_ = build_xy(year, dy, dq, cf, group)
         x_df = pd.concat([x_df, x_df_], axis=0)
         y_df = pd.concat([y_df, y_df_], axis=0)
 
     x_df.reset_index(inplace=True, drop=True)
     y_df.reset_index(inplace=True, drop=True)
-    folder = '_'.join(['xy', str(dy), str(dq)])
+    folder = '_'.join(['xy', 'q', str(dy), str(dq)])
     if not os.path.exists(os.path.join(DATA_FOLDER, folder)):
         os.mkdir(os.path.join(DATA_FOLDER, folder))
 
@@ -168,7 +169,7 @@ def run_build_xy(year, cf='c', dy=1, dq=0):
 
 
 def run_load_xy(years, set_name, dy=1, dq=0, save_dir='xy_data'):
-    folder = '_'.join(['xy', str(dy), str(dq)])
+    folder = '_'.join(['xy', 'q', str(dy), str(dq)])
     if not os.path.exists(os.path.join(DATA_FOLDER, folder)):
         raise Exception('Preprocessed xy data folder not found')
     if not os.path.exists(os.path.join(DATA_FOLDER, save_dir)):
