@@ -5,7 +5,7 @@ from global_settings import DATA_FOLDER, ccm
 from tools.utils import y_filter
 import pickle
 import os
-
+import numpy as np
 
 def run_build_annual_y(permnos, group):
     compa = build_compa(permnos)
@@ -80,9 +80,7 @@ def run_build_y(group):
 
 
 if __name__ == '__main__':
-    group = '34'
-    permnos = tuple([_ for _ in ccm['permno'] if str(_)[:2] == group])
-    run_build_annual_y(permnos, group)
+    pass
 
     # for group in groups:
     #     print(f'{datetime.now()} Working on group with permno starting with ' + group)
