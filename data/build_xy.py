@@ -139,10 +139,6 @@ def build_xy(year, dy, dq, cf, group):
             except KeyError:
                 pass
 
-    x_df_.reset_index(drop=True, inplace=True)
-    y_df_.reset_index(drop=True, inplace=True)
-
-    print(year, x_df_.shape, y_df_.shape)
     return x_df_, y_df_
 
 
@@ -155,8 +151,6 @@ def run_build_xy(year, dy=1, dq=0, cf='c'):
         x_df = pd.concat([x_df, x_df_], axis=0)
         y_df = pd.concat([y_df, y_df_], axis=0)
 
-    x_df.reset_index(inplace=True, drop=True)
-    y_df.reset_index(inplace=True, drop=True)
     folder = '_'.join(['xy', 'q', str(dy), str(dq)])
     if not os.path.exists(os.path.join(DATA_FOLDER, folder)):
         os.mkdir(os.path.join(DATA_FOLDER, folder))
@@ -194,7 +188,7 @@ def run_load_xy(years, set_name, dy=1, dq=0, save_dir='xy_data'):
 
 
 if __name__ == '__main__':
-    years = np.arange(1975, 2020)
-    pool = Pool(14)
-    pool.map(run_build_xy, years)
-    # run_build_xy(2017)
+    # years = np.arange(1975, 2020)
+    # pool = Pool(14)
+    # pool.map(run_build_xy, years)
+    run_build_xy(2017)
