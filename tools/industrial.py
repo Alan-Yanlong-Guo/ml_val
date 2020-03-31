@@ -5,7 +5,7 @@ import os
 import pickle
 from global_settings import DATA_FOLDER
 conn = wrds.Connection(wrds_username='dachxiu')
-
+from datetime import datetime
 
 sics_c = ['1', '2', '3', '4', '5', '6', '7', '8', '9']
 sics_f = ['10', '12', '13', '14', '15', '16', '17', '20', '21', '22', '23', '24',
@@ -119,6 +119,7 @@ def sum_med(compa_, filter_list_i, filter_list_j):
 
 
 def run_build_table(year):
+    print(f'{datetime.now()} Working on Year {year}')
     compa = build_compa(year)
     compa_s1 = build_compa(year-1)
     compa_s5 = build_compa(year-5)
@@ -127,5 +128,5 @@ def run_build_table(year):
 
 
 if __name__ == '__main__':
-    for year in np.arange(2018, 2019):
+    for year in np.arange(1960, 2019):
         run_build_table(year)
