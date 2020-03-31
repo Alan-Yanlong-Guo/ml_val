@@ -6,6 +6,7 @@ from tools.utils import horizon
 import numpy as np
 import datetime
 from tools.utils import x_filter
+from multiprocessing import Pool
 
 
 def load_x_y(group):
@@ -149,7 +150,7 @@ def build_xy(year, dy, dq, group, cf):
     return x_df_, y_df_
 
 
-def run_build_xy(year, cf, dy=1, dq=0):
+def run_build_xy(year, cf='c', dy=1, dq=0):
     print(f'{datetime.datetime.now()} Working on year {year}')
     x_df = pd.DataFrame()
     y_df = pd.DataFrame()
@@ -198,7 +199,7 @@ def run_load_xy(years, set_name, dy=1, dq=0, save_dir='xy_data'):
 
 
 if __name__ == '__main__':
-    # years = np.arange(1974, 2020)
-    # pool = Pool(16)
-    # pool.map(run_build_xy, years)
-    run_build_xy(2017, 'c')
+    years = np.arange(1960, 2020)
+    pool = Pool(16)
+    pool.map(run_build_xy, years)
+    # run_build_xy(2017, 'c')
