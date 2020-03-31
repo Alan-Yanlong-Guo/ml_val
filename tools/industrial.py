@@ -7,12 +7,12 @@ from global_settings import DATA_FOLDER
 conn = wrds.Connection(wrds_username='dachxiu')
 from datetime import datetime
 
-sics_c = ['1', '2', '3', '4', '5', '6', '7', '8', '9']
-sics_f = ['10', '12', '13', '14', '15', '16', '17', '20', '21', '22', '23', '24',
-         '25', '26', '27', '28', '29', '30', '31', '32', '33', '34', '35', '36', '37', '38', '39', '40', '41',
-         '42', '44', '45', '46', '47', '48', '49', '50', '51', '52', '53', '54', '55', '56', '57', '58', '59',
-         '60', '61', '62', '63', '64', '65', '67', '70', '72', '73', '75', '76', '78', '79', '80', '81', '82',
-         '83', '86', '87', '88', '89', '97', '99']
+sics_c = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']
+sics_f = ['01', '02', '07', '08', '09', '10', '12', '13', '14', '15', '16', '17', '20', '21', '22', '23', '24',
+          '25', '26', '27', '28', '29', '30', '31', '32', '33', '34', '35', '36', '37', '38', '39', '40', '41',
+          '42', '44', '45', '46', '47', '48', '49', '50', '51', '52', '53', '54', '55', '56', '57', '58', '59',
+          '60', '61', '62', '63', '64', '65', '67', '70', '72', '73', '75', '76', '78', '79', '80', '81', '82',
+          '83', '86', '87', '88', '89', '97', '99']
 
 filter_list_i = ['revt', 'ebit', 'ebitda', 're']
 filter_list_j = ['epspi', 'gma', 'operprof', 'quick', 'currat', 'cashrrat', 'cftrr', 'dpr', 'pe', 'pb', 'roe', 'roa',
@@ -71,17 +71,17 @@ def build_table(compa, compa_s1, compa_s5, year, cf):
     columns_ = [_ + '_sum' for _ in filter_list_i] + [_ + '_med' for _ in filter_list_i] + [_ + '_med' for _ in filter_list_j]
     columns_aoa = [_ + '_aoa' for _ in columns_]
     columns_5o5 = [_ + '_5o5' for _ in columns_]
-    industrial = pd.DataFrame(columns= columns_ + columns_aoa + columns_5o5)
+    industrial = pd.DataFrame(columns=columns_ + columns_aoa + columns_5o5)
 
     for sic in sics:
         if cf == 'c':
-            compa_ = compa[compa['sic'].apply(lambda _: str(_)[:1] == sic)]
-            compa_s1_ = compa_s1[compa_s1['sic'].apply(lambda _: str(_)[:1] == sic)]
-            compa_s5_ = compa_s5[compa_s5['sic'].apply(lambda _: str(_)[:1] == sic)]
+            compa_ = compa[compa['sic'].apply(lambda _: str(_.zfill(4))[:1] == sic)]
+            compa_s1_ = compa_s1[compa_s1['sic'].apply(lambda _: str(_.zfill(4))[:1] == sic)]
+            compa_s5_ = compa_s5[compa_s5['sic'].apply(lambda _: str(_.zfill(4))[:1] == sic)]
         else:
-            compa_ = compa[compa['sic'].apply(lambda _: str(_)[:2] == sic)]
-            compa_s1_ = compa_s1[compa_s1['sic'].apply(lambda _: str(_)[:2] == sic)]
-            compa_s5_ = compa_s5[compa_s5['sic'].apply(lambda _: str(_)[:2] == sic)]
+            compa_ = compa[compa['sic'].apply(lambda _: str(_.zfill(4))[:2] == sic)]
+            compa_s1_ = compa_s1[compa_s1['sic'].apply(lambda _: str(_.zfill(4))[:2] == sic)]
+            compa_s5_ = compa_s5[compa_s5['sic'].apply(lambda _: str(_.zfill(4))[:2] == sic)]
 
         compa_i_sum, compa_i_med, compa_j_med = sum_med(compa_, filter_list_i, filter_list_j)
         compa_i_sum_s1, compa_i_med_s1, compa_j_med_s1 = sum_med(compa_s1_, filter_list_i, filter_list_j)
