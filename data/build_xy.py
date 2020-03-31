@@ -147,7 +147,7 @@ def build_xy(year, dy, dq, aq, group):
     return x_df_, y_df_
 
 
-def run_build_xy(year, dy=1, dq=0, aq='q'):
+def run_build_xy(year, dy=1, dq=0, aq='a'):
     print(f'{datetime.datetime.now()} Working on year {year}')
     if aq == 'a':
         assert dq == 0, 'Invalid dq value'
