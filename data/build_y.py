@@ -11,7 +11,6 @@ import numpy as np
 
 def run_build_annual_y(permnos, group):
     compa = build_compa(permnos)
-    print('comp', np.shape(compa[compa['fyear'] == 1970]))
     permnos = set(compa['permno'].tolist())
     compa_a = compa.set_index(['permno', 'fyear', 'fqtr'], inplace=False)
     compa_a = compa_a.sort_index(inplace=False)

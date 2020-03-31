@@ -34,8 +34,6 @@ def build_comp(permnos):
                         and f.consol='C'
                         """)
 
-    print(np.shape(comp[comp['fyear'] == 1960]))
-
     comp.cnum = comp.cnum.replace(' ', '').str.slice(0, 6)
     comp.sic2 = comp.sic2 + '12'
     comp.apdedate = pd.to_datetime(comp.apdedate)
