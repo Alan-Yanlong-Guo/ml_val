@@ -118,7 +118,8 @@ def build_xy(year, dy, dq, aq, group):
     y_quarter.rename(columns={'datadate': 'datadateq'}, inplace=True)
     x_month.rename(columns={'datadate': 'datadateq'}, inplace=True)
 
-    date_type = 'fdate' if dy == 0 else 'datadate'
+    # date_type = 'fdate' if dy == 0 else 'datadate'
+    date_type = 'datadate'
     y_annual.dropna(subset=[date_type], inplace=True, axis=0)
     y_quarter.dropna(subset=[date_type + 'q'], inplace=True, axis=0)
 
@@ -146,16 +147,15 @@ def build_xy(year, dy, dq, aq, group):
     return x_df_, y_df_
 
 
-def run_build_xy(year, dy=1, dq=0, aq='a'):
+def run_build_xy(year, dy=0, dq=1, aq='q'):
     print(f'{datetime.datetime.now()} Working on year {year}')
     if aq == 'a':
         assert dq == 0, 'Invalid dq value'
 
     x_df, y_df = pd.DataFrame(), pd.DataFrame()
     for group in groups:
-        print(f'{datetime.datetime.now()} Working on group {group}')
         x_df_, y_df_ = build_xy(year, dy, dq, aq, group)
-        print(f'{datetime.datetime.now()} Finished on group {group} x shape: {x_df_.shape} y shape: {y_df_.shape}')
+        print(f'{datetime.datetime.now()} Finished {year} industry {group} with {x_df_.shape[0]} obs!')
         x_df = pd.concat([x_df, x_df_], axis=0)
         y_df = pd.concat([y_df, y_df_], axis=0)
 
@@ -170,8 +170,8 @@ def run_build_xy(year, dy=1, dq=0, aq='a'):
         pickle.dump(y_df, handle)
 
 
-def run_load_xy(years, set_name, dy=1, dq=0, save_dir='xy_data'):
-    folder = '_'.join(['xy', 'q', str(dy), str(dq)])
+def run_load_xy(years, set_name, dy=0, dq=1, save_dir='xy_data', aq='q'):
+    folder = '_'.join(['xy', aq, str(dy), str(dq)])
     if not os.path.exists(os.path.join(DATA_FOLDER, folder)):
         raise Exception('Preprocessed xy data folder not found')
     if not os.path.exists(os.path.join(DATA_FOLDER, save_dir)):
@@ -187,15 +187,15 @@ def run_load_xy(years, set_name, dy=1, dq=0, save_dir='xy_data'):
         x_df_set = pd.concat([x_df_set, x_df_], axis=0)
         y_df_set = pd.concat([y_df_set, y_df_], axis=0)
 
-    with open(os.path.join(DATA_FOLDER, save_dir, '_'.join(['x', str(set_name)]) + '.pkl'), 'wb') as handle:
+    with open(os.path.join(DATA_FOLDER, save_dir, '_'.join(['x', aq, str(dy), str(dq), str(set_name)]) + '.pkl'), 'wb') as handle:
         pickle.dump(x_df_set, handle)
 
-    with open(os.path.join(DATA_FOLDER, save_dir, '_'.join(['y', str(set_name)]) + '.pkl'), 'wb') as handle:
+    with open(os.path.join(DATA_FOLDER, save_dir, '_'.join(['y', aq, str(dy), str(dq), str(set_name)]) + '.pkl'), 'wb') as handle:
         pickle.dump(y_df_set, handle)
 
 
 if __name__ == '__main__':
-    # years = np.arange(1975, 2020)
-    # pool = Pool(16)
-    # pool.map(run_build_xy, years)
-    run_build_xy(2017)
+    years = np.arange(1975, 2020)
+    pool = Pool(15)
+    pool.map(run_build_xy, years)
+    # run_build_xy(2017)
