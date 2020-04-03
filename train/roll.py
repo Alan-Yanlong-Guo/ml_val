@@ -7,12 +7,11 @@ import sklearn
 import os
 
 def run_load_xy(years, dy=0, dq=1, save_dir='xy_data', aq='q'):
-    DATA_FOLDER = 'nfs/home/mingweim/ml_val/data_all'
+    DATA_FOLDER = '/nfs/home/mingweim/ml_val/data_all'
+    
     folder = '_'.join(['xy', aq, str(dy), str(dq)])
     if not os.path.exists(os.path.join(DATA_FOLDER, folder)):
         raise Exception('Preprocessed xy data folder not found')
-    if not os.path.exists(os.path.join(DATA_FOLDER, save_dir)):
-        os.mkdir(os.path.join(DATA_FOLDER, save_dir))
 
     x_df_set, y_df_set = pd.DataFrame(), pd.DataFrame()
 
