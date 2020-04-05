@@ -76,7 +76,7 @@ def run_build_quarter_y(permnos, group):
 
     compq_aoa.columns = [col_names + '_aoa' for col_names in compq_a.columns]
     compq_aoar.columns = [col_names + '_aoar' for col_names in compq_a.columns]
-    
+
     y_q = pd.concat([compq_id, compq_q], axis=1)
     y_q = pd.merge(y_q, pd.concat([compq_aoa, compq_aoar], axis=1), left_index=True, right_index=True)
 

@@ -9,7 +9,7 @@ def build_compq(permnos):
     compq = conn.raw_sql(f"""
                          select 
                          fyearq, fqtr, apdedateq, datadate, pdateq, fdateq, f.gvkey, REVTQ, REQ, EPSPIQ, ACTQ, 
-                         INVTQ, LCTQ, CHQ, CSHOQ, PRCCQ, NIQ, ATQ, LTQ, GDWLQ
+                         INVTQ, LCTQ, CHQ, CSHOQ, PRCCQ, NIQ, ATQ, LTQ, GDWLQ, OPEPSQ, OIADPQ, OIBDPQ, PIQ, CEQQ
                          from comp.fundq as f
                          where f.gvkey in {gvkeys}
                          and REVTQ != 'NaN'
@@ -28,5 +28,6 @@ def build_compq(permnos):
     compq['peq'] = (compq['cshoq']*compq['prccq']) / compq['niq']
     compq['roeq'] = compq['niq'] / (compq['prccq']*compq['prccq'])
     compq['roaq'] = compq['niq'] / (compq['atq'] - compq['ltq'])
+    compq['pbq'] = (compq['prccq']*compq['cshoq']) / (compq['ceqq'])
 
     return compq
