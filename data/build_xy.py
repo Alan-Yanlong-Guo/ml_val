@@ -94,15 +94,15 @@ def build_x_line(permno, x_annual, x_quarter, x_month, y_annual, y_quarter, x_ay
 
 def build_y_line(permno, y_annual, y_quarter, y_ay, y_qy, y_qq, aq):
     if aq == 'a':
-        y_annual['datadate'] = pd.to_datetime(y_annual['date_type'])
+        y_annual['datadate'] = pd.to_datetime(y_annual['datadate'])
         y_annual = y_annual.loc[[(permno, y_ay, 4)], :]
-        y_my, y_mm = y_annual['date_type'].dt.year[0], y_annual['date_type'].dt.month[0]
+        y_my, y_mm = y_annual['datadate'].dt.year[0], y_annual['datadate'].dt.month[0]
         y_line_y = y_annual
 
     else:
-        y_quarter['date_type' + 'q'] = pd.to_datetime(y_quarter['date_type' + 'q'])
+        y_quarter['datadate' + 'q'] = pd.to_datetime(y_quarter['datadate' + 'q'])
         y_quarter = y_quarter.loc[[(permno, y_qy, y_qq)], :]
-        y_my, y_mm = y_quarter['date_type' + 'q'].dt.year[0], y_quarter['date_type' + 'q'].dt.month[0]
+        y_my, y_mm = y_quarter['datadate' + 'q'].dt.year[0], y_quarter['datadate' + 'q'].dt.month[0]
         y_line_y = y_quarter
 
     if np.shape(y_line_y)[0] == 1:
