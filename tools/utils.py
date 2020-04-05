@@ -43,6 +43,22 @@ def tic_unique():
             print(tic)
 
 
+def shift(x_qy, x_qq, dq):
+    assert type(dq) is int and dq in [0, 1, 2, 3], 'Invalid dq value'
+
+    if x_qq - dq < 0:
+        x_qy = x_qy - 1
+        x_qq = (x_qq - dq) % 4
+    elif x_qq - dq == 0:
+        x_qy = x_qy - 1
+        x_qq = 4
+    else:
+        x_qy = x_qy
+        x_qq = x_qq - dq
+
+    return x_qy, x_qq
+
+
 def horizon(y_ay, y_qy, y_qq, y_my, y_mm, dy, dq):
     assert type(dy) is int and dy >= 0, 'Invalid dy value'
     assert type(dq) is int and dq in [0, 1, 2, 3], 'Invalid dq value'

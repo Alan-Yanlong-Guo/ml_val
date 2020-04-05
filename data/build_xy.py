@@ -5,7 +5,7 @@ from global_settings import DATA_FOLDER, ccm, groups
 from tools.utils import horizon
 import numpy as np
 import datetime
-from tools.utils import x_filter
+from tools.utils import x_filter, shift
 from multiprocessing import Pool
 
 
