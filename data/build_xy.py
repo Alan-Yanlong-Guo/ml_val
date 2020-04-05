@@ -92,17 +92,17 @@ def build_x_line(permno, x_annual, x_quarter, x_month, y_annual, y_quarter, x_ay
     return x_line
 
 
-def build_y_line(permno, date_type, y_annual, y_quarter, y_ay, y_qy, y_qq, aq):
+def build_y_line(permno, y_annual, y_quarter, y_ay, y_qy, y_qq, aq):
     if aq == 'a':
-        y_annual[date_type] = pd.to_datetime(y_annual[date_type])
+        y_annual['datadate'] = pd.to_datetime(y_annual['date_type'])
         y_annual = y_annual.loc[[(permno, y_ay, 4)], :]
-        y_my, y_mm = y_annual[date_type].dt.year[0], y_annual[date_type].dt.month[0]
+        y_my, y_mm = y_annual['date_type'].dt.year[0], y_annual['date_type'].dt.month[0]
         y_line_y = y_annual
 
     else:
-        y_quarter[date_type + 'q'] = pd.to_datetime(y_quarter[date_type + 'q'])
+        y_quarter['date_type' + 'q'] = pd.to_datetime(y_quarter['date_type' + 'q'])
         y_quarter = y_quarter.loc[[(permno, y_qy, y_qq)], :]
-        y_my, y_mm = y_quarter[date_type + 'q'].dt.year[0], y_quarter[date_type + 'q'].dt.month[0]
+        y_my, y_mm = y_quarter['date_type' + 'q'].dt.year[0], y_quarter['date_type' + 'q'].dt.month[0]
         y_line_y = y_quarter
 
     if np.shape(y_line_y)[0] == 1:
@@ -119,9 +119,8 @@ def build_xy(year, dy, dq, aq, group):
     x_month.rename(columns={'datadate': 'datadateq'}, inplace=True)
 
     # date_type = 'fdate' if dy == 0 else 'datadate'
-    date_type = 'datadate'
-    y_annual.dropna(subset=[date_type], inplace=True, axis=0)
-    y_quarter.dropna(subset=[date_type + 'q'], inplace=True, axis=0)
+    y_annual.dropna(subset=['datadate'], inplace=True, axis=0)
+    y_quarter.dropna(subset=['datadate' + 'q'], inplace=True, axis=0)
 
     # Build yearly data for the group
     x_df_, y_df_ = pd.DataFrame(), pd.DataFrame()
@@ -133,7 +132,7 @@ def build_xy(year, dy, dq, aq, group):
         y_ay = year if y_qq == 4 else year - 1
         for permno in permnos:
             try:
-                y_line, y_my, y_mm = build_y_line(permno, date_type, y_annual, y_quarter, y_ay, y_qy, y_qq, aq)
+                y_line, y_my, y_mm = build_y_line(permno, y_annual, y_quarter, y_ay, y_qy, y_qq, aq)
                 x_ay, x_qy, x_qq, x_my, x_mm = horizon(y_ay, y_qy, y_qq, y_my, y_mm, dy, dq)
                 x_line = build_x_line(permno, x_annual, x_quarter, x_month, y_annual, y_quarter, x_ay, x_qy, x_qq, x_my, x_mm, aq)
 
