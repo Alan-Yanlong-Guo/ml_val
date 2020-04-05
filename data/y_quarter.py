@@ -9,7 +9,8 @@ def build_compq(permnos):
     compq = conn.raw_sql(f"""
                          select 
                          fyearq, fqtr, apdedateq, datadate, pdateq, fdateq, f.gvkey, REVTQ, REQ, EPSPIQ, ACTQ, 
-                         INVTQ, LCTQ, CHQ, CSHOQ, PRCCQ, NIQ, ATQ, LTQ, GDWLQ, OPEPSQ, OIADPQ, OIBDPQ, PIQ, CEQQ
+                         INVTQ, LCTQ, CHQ, CSHOQ, abs(PRCCQ) as PRCCQ, NIQ, ATQ, LTQ, GDWLQ, OPEPSQ, OIADPQ, OIBDPQ, 
+                         PIQ, CEQQ
                          from comp.fundq as f
                          where f.gvkey in {gvkeys}
                          and REVTQ != 'NaN'
