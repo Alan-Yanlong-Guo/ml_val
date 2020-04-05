@@ -68,7 +68,8 @@ def build_table(compa, compa_s1, compa_s5, year, cf):
     else:
         raise Exception('Invalid Coarse Fine Type')
 
-    columns_ = [_ + '_sum' for _ in filter_list_i] + [_ + '_med' for _ in filter_list_i] + [_ + '_med' for _ in filter_list_j]
+    columns_ = ['_'.join([_, cf, 'sum']) for _ in filter_list_i] + ['_'.join([_, cf, 'med']) for _ in filter_list_i] + \
+               ['_'.join([_, cf, 'med']) for _ in filter_list_j]
     columns_aoa = [_ + '_aoa' for _ in columns_]
     columns_5o5 = [_ + '_5o5' for _ in columns_]
     industrial = pd.DataFrame(columns=columns_ + columns_aoa + columns_5o5)
