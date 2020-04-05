@@ -91,18 +91,19 @@ def horizon(y_ay, y_qy, y_qq, y_my, y_mm, dy, dq):
 def x_filter(x, filter_type):
     if filter_type == 'annual':
         filter_list = ['sic', 'absacc', 'acc', 'agr', 'bm_ia', 'cashdebt', 'cashpr', 'cfp', 'cfp_ia', 'chatoia',
-                       'chcsho', 'chempia', 'chinv', 'chpmia', 'convind', 'currat', 'depr', 'divi', 'divo', 'dy',
-                       'egr', 'ep', 'gma', 'grcapx', 'grltnoa', 'herf', 'hire', 'invest', 'lev', 'lgr', 'mve_ia',
-                       'operprof', 'orgcap', 'pchcapx_ia', 'pchcurrat', 'pchdepr', 'pchgm_pchsale', 'pchquick',
-                       'pchsale_pchinvt', 'pchsale_pchrect', 'pchsale_pchxsga', 'pchsaleinv', 'pctacc', 'ps', 'quick',
-                       'rd', 'rd_mve', 'rd_sale', 'realestate', 'roic', 'salecash', 'saleinv', 'salerec', 'secured',
-                       'securedind', 'sgr', 'sin', 'sp', 'tang', 'tb']
+                       'chcsho', 'chempia', 'chinv', 'chpmia', 'convind', 'depr', 'divi', 'divo', 'dy',
+                       'egr', 'ep', 'grcapx', 'grltnoa', 'herf', 'hire', 'invest', 'lgr', 'mve_ia',
+                       'orgcap', 'pchcapx_ia', 'pchcurrat', 'pchdepr', 'pchgm_pchsale', 'pchquick',
+                       'pchsale_pchinvt', 'pchsale_pchrect', 'pchsale_pchxsga', 'pchsaleinv', 'pctacc', 'ps',
+                       'rd', 'rd_mve', 'rd_sale', 'realestate', 'salecash', 'saleinv', 'salerec', 'secured',
+                       'securedind', 'sgr', 'sin', 'sp', 'tang', 'tb']  # gma, operprof, quick, currat, roic, lev
     elif filter_type == 'quarter':
-        filter_list = ['aeavol', 'cash', 'chtx', 'cinvest', 'ear', 'roaq', 'roavol', 'roeq', 'rsup', 'stdacc', 'stdcf']
+        filter_list = ['aeavol', 'cash', 'chtx', 'cinvest', 'ear', 'roavol', 'roeq', 'roaq', 'rsup', 'stdacc', 'stdcf']
     elif filter_type == 'month':
         filter_list = ['chmom', 'dolvol', 'mom12m', 'mom1m', 'mom36m', 'mom6m', 'mvel1', 'turn']
     else:
         raise Exception('Invalid Filter Type')
+
     x = x[filter_list]
 
     return x
