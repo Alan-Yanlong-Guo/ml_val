@@ -22,13 +22,13 @@ filter_list_j = ['epspi', 'gma', 'operprof', 'quick', 'currat', 'cashrrat', 'cft
 def build_compa(year):
     compa = conn.raw_sql(f"""
                          select
-                         fyear, apdedate, datadate, pdate, fdate, sic, f.gvkey, REVT, EBIT, EBITDA, RE, EPSPI, GP, 
-                         OPINCAR, ACT, INVT, LCT, CH, OANCF, DVP, DVC, PRSTKC, NI, CSHO, PRCC_F, mkvalt, BKVLPS, AT, 
-                         LT, DVT, ICAPT, XINT, DLCCH, DLTT, GDWL, GWO, CAPX, DLC, SEQ
+                         fyear, apdedate, datadate, pdate, fdate, sic, f.gvkey, REVT, EBIT, EBITDA, RE, EPSPI, GP,
+                         OPINCAR, ACT, INVT, LCT, CH, OANCF, DVP,  DVC, PRSTKC, NI, CSHO, PRCC_F, mkvalt, BKVLPS, AT,
+                                 LT, DVT, ICAPT, XINT, DLCCH, DLTT, GDWL, GWO, CAPX, DLC, SEQ
                          from comp.names as c, comp.funda as f
                          where f.fyear = {year}
                          and f.gvkey=c.gvkey
-                         and REVT != 'NaN' 
+                         and REVT != 'NaN'
                          and f.indfmt='INDL'
                          and f.datafmt='STD'
                          and f.popsrc='D'
