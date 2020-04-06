@@ -71,9 +71,10 @@ def build_table(compa, compa_s1, compa_s3, compa_s5, year, cf):
     columns_ = ['_'.join([_, cf, 'sum']) for _ in filter_list_i] + ['_'.join([_, cf, 'med']) for _ in filter_list_i] + \
                ['_'.join([_, cf, 'med']) for _ in filter_list_j]
     columns_1o1 = [_ + '_1o1' for _ in columns_]
-    columns_3o3 = [_ + '_3o3' for _ in columns_]
-    columns_5o5 = [_ + '_5o5' for _ in columns_]
-    industrial = pd.DataFrame(columns=columns_ + columns_1o1 + columns_3o3 + columns_5o5)
+    columns_1o1r = [_ + '_1o1r' for _ in columns_]
+    columns_3o3r = [_ + '_3o3r' for _ in columns_]
+    columns_5o5r = [_ + '_5o5r' for _ in columns_]
+    industrial = pd.DataFrame(columns=columns_ + columns_1o1 + columns_1o1r + columns_3o3r + columns_5o5r)
 
     for sic in sics:
         if cf == 'c':
@@ -91,21 +92,25 @@ def build_table(compa, compa_s1, compa_s3, compa_s5, year, cf):
         compa_i_sum_s1, compa_i_med_s1, compa_j_med_s1 = sum_med(compa_s1_, filter_list_i, filter_list_j)
         compa_i_sum_s3, compa_i_med_s3, compa_j_med_s3 = sum_med(compa_s3_, filter_list_i, filter_list_j)
         compa_i_sum_s5, compa_i_med_s5, compa_j_med_s5 = sum_med(compa_s5_, filter_list_i, filter_list_j)
-        compa_i_sum_1o1 = compa_i_sum.div(compa_i_sum_s1) - 1
-        compa_i_med_1o1 = compa_i_med.div(compa_i_med_s1) - 1
-        compa_j_med_1o1 = compa_j_med.div(compa_j_med_s1) - 1
-        compa_i_sum_3o3 = compa_i_sum.div(compa_i_sum_s3).pow(1/3) - 1
-        compa_i_med_3o3 = compa_i_med.div(compa_i_med_s3).pow(1/3) - 1
-        compa_j_med_3o3 = compa_j_med.div(compa_j_med_s3).pow(1/3) - 1
-        compa_i_sum_5o5 = compa_i_sum.div(compa_i_sum_s5).pow(1/5) - 1
-        compa_i_med_5o5 = compa_i_med.div(compa_i_med_s5).pow(1/5) - 1
-        compa_j_med_5o5 = compa_j_med.div(compa_j_med_s5).pow(1/5) - 1
+        compa_i_sum_1o1 = compa_i_sum - compa_i_sum_s1
+        compa_i_med_1o1 = compa_i_med - compa_i_med_s1
+        compa_j_med_1o1 = compa_j_med - compa_j_med_s1
+        compa_i_sum_1o1r = compa_i_sum.div(compa_i_sum_s1) - 1
+        compa_i_med_1o1r = compa_i_med.div(compa_i_med_s1) - 1
+        compa_j_med_1o1r = compa_j_med.div(compa_j_med_s1) - 1
+        compa_i_sum_3o3r = compa_i_sum.div(compa_i_sum_s3).pow(1/3) - 1
+        compa_i_med_3o3r = compa_i_med.div(compa_i_med_s3).pow(1/3) - 1
+        compa_j_med_3o3r = compa_j_med.div(compa_j_med_s3).pow(1/3) - 1
+        compa_i_sum_5o5r = compa_i_sum.div(compa_i_sum_s5).pow(1/5) - 1
+        compa_i_med_5o5r = compa_i_med.div(compa_i_med_s5).pow(1/5) - 1
+        compa_j_med_5o5r = compa_j_med.div(compa_j_med_s5).pow(1/5) - 1
 
         industrial_ = np.concatenate([compa_i_sum, compa_i_med, compa_j_med], axis=0)
         industrial_1o1 = np.concatenate([compa_i_sum_1o1, compa_i_med_1o1, compa_j_med_1o1], axis=0)
-        industrial_3o3 = np.concatenate([compa_i_sum_3o3, compa_i_med_3o3, compa_j_med_3o3], axis=0)
-        industrial_5o5 = np.concatenate([compa_i_sum_5o5, compa_i_med_5o5, compa_j_med_5o5], axis=0)
-        industrial_ = np.concatenate([industrial_, industrial_1o1, industrial_3o3, industrial_5o5], axis=0)
+        industrial_1o1r = np.concatenate([compa_i_sum_1o1r, compa_i_med_1o1r, compa_j_med_1o1r], axis=0)
+        industrial_3o3r = np.concatenate([compa_i_sum_3o3r, compa_i_med_3o3r, compa_j_med_3o3r], axis=0)
+        industrial_5o5r = np.concatenate([compa_i_sum_5o5r, compa_i_med_5o5r, compa_j_med_5o5r], axis=0)
+        industrial_ = np.concatenate([industrial_, industrial_1o1, industrial_1o1r, industrial_3o3r, industrial_5o5r], axis=0)
 
         industrial = industrial.append(pd.DataFrame([industrial_], columns=industrial.columns))
 
