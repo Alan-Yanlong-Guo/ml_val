@@ -170,6 +170,8 @@ def run_build_xy(year, dy=0, dq=1, aq='q'):
         print(f'{datetime.datetime.now()} Finished {year} industry {group} with {x_df_.shape[0]} obs!')
         x_df = pd.concat([x_df, x_df_], axis=0)
         y_df = pd.concat([y_df, y_df_], axis=0)
+        # x_df.to_csv('x1.csv')
+        # y_df.to_csv('y1.csv')
 
     folder = '_'.join(['xy', aq, str(dy), str(dq)])
     if not os.path.exists(os.path.join(DATA_FOLDER, folder)):
@@ -208,6 +210,6 @@ def run_load_xy(years, set_name, dy=0, dq=1, save_dir='xy_data', aq='q'):
 
 if __name__ == '__main__':
     years = np.arange(1975, 2020)
-    pool = Pool(15)
+    pool = Pool(16)
     pool.map(run_build_xy, years)
     # run_build_xy(2017)
