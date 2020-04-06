@@ -83,7 +83,7 @@ def train_test_process(data_start=1975, tr_start=1975, tr_duration=20, ts_durati
     for item in y_tr.columns:
         if item not in variables_to_test:
             continue
-        param_test = {'max_depth': [1, 2, 4], 'num_leaves': [2, 6], 'n_estimators': [20, 100, 200]}
+        param_test = {'max_depth': [1, 2], 'num_leaves': [2, 6], 'n_estimators': [10, 20, 50]}
         # param_test = {'max_depth': [1], 'num_leaves': [2], 'n_estimators': [2]}
         mod = LGBMRegressor(objective='regression_l2', zero_as_missing=True)
         clf = sklearn.model_selection.GridSearchCV(mod , param_grid = param_test, scoring='r2', cv=3)
