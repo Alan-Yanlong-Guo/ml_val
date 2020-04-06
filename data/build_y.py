@@ -16,8 +16,8 @@ def run_build_annual_y(permnos, group):
     compa_a = compa_a.iloc[:, 5:]
     compa_a = y_filter(compa_a, 'annual')
 
-    compa_aoa = pd.DataFrame()
-    compa_aoar = pd.DataFrame()
+    compa_1o1 = pd.DataFrame()
+    compa_1o1r = pd.DataFrame()
     compa_3o3r = pd.DataFrame()
     compa_5o5r = pd.DataFrame()
 
@@ -26,21 +26,21 @@ def run_build_annual_y(permnos, group):
         compa_a_s1_ = compa_a_.shift(1)
         compa_a_s3_ = compa_a_.shift(3)
         compa_a_s5_ = compa_a_.shift(5)
-        compa_aoa_ = compa_a_ - compa_a_s1_
-        compa_aoar_ = (compa_a_ / compa_a_s1_) - 1
-        compa_3o3r_ = (compa_a_ / compa_a_s3_).pow(1/3) - 1
-        compa_5o5r_ = (compa_a_ / compa_a_s5_).pow(1/5) - 1
-        compa_aoa = pd.concat([compa_aoa, compa_aoa_], axis=0)
-        compa_aoar = pd.concat([compa_aoar, compa_aoar_], axis=0)
+        compa_1o1_ = compa_a_ - compa_a_s1_
+        compa_1o1r_ = compa_a_.div(compa_a_s1_) - 1
+        compa_3o3r_ = compa_a_.div(compa_a_s3_).pow(1/3) - 1
+        compa_5o5r_ = compa_a_.div(compa_a_s5_).pow(1/5) - 1
+        compa_1o1 = pd.concat([compa_1o1, compa_1o1_], axis=0)
+        compa_1o1r = pd.concat([compa_1o1r, compa_1o1r_], axis=0)
         compa_3o3r = pd.concat([compa_3o3r, compa_3o3r_], axis=0)
         compa_5o5r = pd.concat([compa_5o5r, compa_5o5r_], axis=0)
 
-    compa_aoa.columns = [col_names + '_aoa' for col_names in compa_a.columns]
-    compa_aoar.columns = [col_names + '_aoar' for col_names in compa_a.columns]
+    compa_1o1.columns = [col_names + '_1o1' for col_names in compa_a.columns]
+    compa_1o1r.columns = [col_names + '_1o1r' for col_names in compa_a.columns]
     compa_3o3r.columns = [col_names + '_3o3r' for col_names in compa_a.columns]
     compa_5o5r.columns = [col_names + '_5o5r' for col_names in compa_a.columns]
 
-    y_a = pd.concat([compa_id, compa_a, compa_aoa, compa_aoar, compa_3o3r, compa_5o5r], axis=1)
+    y_a = pd.concat([compa_id, compa_a, compa_1o1, compa_1o1r, compa_3o3r, compa_5o5r], axis=1)
 
     with open(os.path.join(DATA_FOLDER, 'annual_y', '_'.join(['y', group]) + '.pkl'), 'wb') as handle:
         pickle.dump(y_a, handle)
@@ -55,8 +55,8 @@ def run_build_quarter_y(permnos, group):
     compq_q = compq_q.iloc[:, 5:]
     compq_q = y_filter(compq_q, 'quarter')
 
-    compq_aoa = pd.DataFrame()
-    compq_aoar = pd.DataFrame()
+    compq_1o1 = pd.DataFrame()
+    compq_1o1r = pd.DataFrame()
     for quarter in [1, 2, 3, 4]:
         compq_a = compq[compq['fqtr'] == quarter]
         compq_a = compq_a.set_index(['permno', 'fyearq', 'fqtr'], inplace=False)
@@ -67,18 +67,18 @@ def run_build_quarter_y(permnos, group):
             try:
                 compq_a_ = compq_a.loc[[permno], :]
                 compq_a_s1_ = compq_a_.shift(1)
-                compq_aoa_ = compq_a_ - compq_a_s1_
-                compq_aoar_ = (compq_a_ / compq_a_s1_) - 1
-                compq_aoa = pd.concat([compq_aoa, compq_aoa_], axis=0)
-                compq_aoar = pd.concat([compq_aoar, compq_aoar_], axis=0)
+                compq_1o1_ = compq_a_ - compq_a_s1_
+                compq_1o1r_ = compq_a_.div(compq_a_s1_) - 1
+                compq_1o1 = pd.concat([compq_1o1, compq_1o1_], axis=0)
+                compq_1o1r = pd.concat([compq_1o1r, compq_1o1r_], axis=0)
             except KeyError:
                 pass
 
-    compq_aoa.columns = [col_names + '_aoa' for col_names in compq_a.columns]
-    compq_aoar.columns = [col_names + '_aoar' for col_names in compq_a.columns]
+    compq_1o1.columns = [col_names + '_1o1' for col_names in compq_a.columns]
+    compq_1o1r.columns = [col_names + '_1o1r' for col_names in compq_a.columns]
 
     y_q = pd.concat([compq_id, compq_q], axis=1)
-    y_q = pd.merge(y_q, pd.concat([compq_aoa, compq_aoar], axis=1), left_index=True, right_index=True)
+    y_q = pd.merge(y_q, pd.concat([compq_1o1, compq_1o1r], axis=1), left_index=True, right_index=True)
 
     with open(os.path.join(DATA_FOLDER, 'quarter_y', '_'.join(['y', group]) + '.pkl'), 'wb') as handle:
         pickle.dump(y_q, handle)

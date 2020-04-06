@@ -14,7 +14,7 @@ sics_f = ['01', '02', '07', '08', '09', '10', '12', '13', '14', '15', '16', '17'
           '60', '61', '62', '63', '64', '65', '67', '70', '72', '73', '75', '76', '78', '79', '80', '81', '82',
           '83', '86', '87', '88', '89', '97', '99']
 
-filter_list_i = ['revt', 'ebit', 'ebitda', 're']
+filter_list_i = ['revt', 'ebit', 'ebitda', 're', 'gp', 'dvc', 'oancf']
 filter_list_j = ['epspi', 'gma', 'operprof', 'quick', 'currat', 'cashrrat', 'cftrr', 'dpr', 'pe', 'pb', 'roe', 'roa',
                  'roic', 'cod', 'capint', 'lev']
 
@@ -22,13 +22,13 @@ filter_list_j = ['epspi', 'gma', 'operprof', 'quick', 'currat', 'cashrrat', 'cft
 def build_compa(year):
     compa = conn.raw_sql(f"""
                          select
-                         fyear, apdedate, datadate, pdate, fdate, sic, f.gvkey, REVT, EBIT, EBITDA, RE, EPSPI, GP, 
-                         OPINCAR, ACT, INVT, LCT, CH, OANCF, DVP,  DVC, PRSTKC, NI, CSHO, PRCC_F, mkvalt, BKVLPS, AT, 
+                         fyear, apdedate, datadate, pdate, fdate, sic, f.gvkey, REVT, EBIT, EBITDA, RE, EPSPI, GP,
+                         OPINCAR, ACT, INVT, LCT, CH, OANCF, DVP,  DVC, PRSTKC, NI, CSHO, PRCC_F, mkvalt, BKVLPS, AT,
                                  LT, DVT, ICAPT, XINT, DLCCH, DLTT, GDWL, GWO, CAPX, DLC, SEQ
                          from comp.names as c, comp.funda as f
                          where f.fyear = {year}
                          and f.gvkey=c.gvkey
-                         and REVT != 'NaN' 
+                         and REVT != 'NaN'
                          and f.indfmt='INDL'
                          and f.datafmt='STD'
                          and f.popsrc='D'
@@ -59,7 +59,7 @@ def build_compa(year):
     return compa
 
 
-def build_table(compa, compa_s1, compa_s5, year, cf):
+def build_table(compa, compa_s1, compa_s3, compa_s5, year, cf):
 
     if cf == 'c':
         sics = sics_c
@@ -70,34 +70,42 @@ def build_table(compa, compa_s1, compa_s5, year, cf):
 
     columns_ = ['_'.join([_, cf, 'sum']) for _ in filter_list_i] + ['_'.join([_, cf, 'med']) for _ in filter_list_i] + \
                ['_'.join([_, cf, 'med']) for _ in filter_list_j]
-    columns_aoa = [_ + '_aoa' for _ in columns_]
+    columns_1o1 = [_ + '_1o1' for _ in columns_]
+    columns_3o3 = [_ + '_3o3' for _ in columns_]
     columns_5o5 = [_ + '_5o5' for _ in columns_]
-    industrial = pd.DataFrame(columns=columns_ + columns_aoa + columns_5o5)
+    industrial = pd.DataFrame(columns=columns_ + columns_1o1 + columns_3o3 + columns_5o5)
 
     for sic in sics:
         if cf == 'c':
             compa_ = compa[compa['sic'].apply(lambda _: str(_).zfill(4)[:1] == sic)]
             compa_s1_ = compa_s1[compa_s1['sic'].apply(lambda _: str(_).zfill(4)[:1] == sic)]
+            compa_s3_ = compa_s3[compa_s3['sic'].apply(lambda _: str(_).zfill(4)[:1] == sic)]
             compa_s5_ = compa_s5[compa_s5['sic'].apply(lambda _: str(_).zfill(4)[:1] == sic)]
         else:
             compa_ = compa[compa['sic'].apply(lambda _: str(_).zfill(4)[:2] == sic)]
             compa_s1_ = compa_s1[compa_s1['sic'].apply(lambda _: str(_).zfill(4)[:2] == sic)]
+            compa_s3_ = compa_s3[compa_s3['sic'].apply(lambda _: str(_).zfill(4)[:2] == sic)]
             compa_s5_ = compa_s5[compa_s5['sic'].apply(lambda _: str(_).zfill(4)[:2] == sic)]
 
         compa_i_sum, compa_i_med, compa_j_med = sum_med(compa_, filter_list_i, filter_list_j)
         compa_i_sum_s1, compa_i_med_s1, compa_j_med_s1 = sum_med(compa_s1_, filter_list_i, filter_list_j)
+        compa_i_sum_s3, compa_i_med_s3, compa_j_med_s3 = sum_med(compa_s3_, filter_list_i, filter_list_j)
         compa_i_sum_s5, compa_i_med_s5, compa_j_med_s5 = sum_med(compa_s5_, filter_list_i, filter_list_j)
-        compa_i_sum_aoa = compa_i_sum.div(compa_i_sum_s1) - 1
-        compa_i_med_aoa = compa_i_med.div(compa_i_med_s1) - 1
-        compa_j_med_aoa = compa_j_med.div(compa_j_med_s1) - 1
-        compa_i_sum_5o5 = compa_i_sum.div(compa_i_sum_s5) - 1
-        compa_i_med_5o5 = compa_i_med.div(compa_i_med_s5) - 1
-        compa_j_med_5o5 = compa_j_med.div(compa_j_med_s5) - 1
+        compa_i_sum_1o1 = compa_i_sum.div(compa_i_sum_s1) - 1
+        compa_i_med_1o1 = compa_i_med.div(compa_i_med_s1) - 1
+        compa_j_med_1o1 = compa_j_med.div(compa_j_med_s1) - 1
+        compa_i_sum_3o3 = compa_i_sum.div(compa_i_sum_s3).pow(1/3) - 1
+        compa_i_med_3o3 = compa_i_med.div(compa_i_med_s3).pow(1/3) - 1
+        compa_j_med_3o3 = compa_j_med.div(compa_j_med_s3).pow(1/3) - 1
+        compa_i_sum_5o5 = compa_i_sum.div(compa_i_sum_s5).pow(1/5) - 1
+        compa_i_med_5o5 = compa_i_med.div(compa_i_med_s5).pow(1/5) - 1
+        compa_j_med_5o5 = compa_j_med.div(compa_j_med_s5).pow(1/5) - 1
 
         industrial_ = np.concatenate([compa_i_sum, compa_i_med, compa_j_med], axis=0)
-        industrial_aoa = np.concatenate([compa_i_sum_aoa, compa_i_med_aoa, compa_j_med_aoa], axis=0)
+        industrial_1o1 = np.concatenate([compa_i_sum_1o1, compa_i_med_1o1, compa_j_med_1o1], axis=0)
+        industrial_3o3 = np.concatenate([compa_i_sum_3o3, compa_i_med_3o3, compa_j_med_3o3], axis=0)
         industrial_5o5 = np.concatenate([compa_i_sum_5o5, compa_i_med_5o5, compa_j_med_5o5], axis=0)
-        industrial_ = np.concatenate([industrial_, industrial_aoa, industrial_5o5], axis=0)
+        industrial_ = np.concatenate([industrial_, industrial_1o1, industrial_3o3, industrial_5o5], axis=0)
 
         industrial = industrial.append(pd.DataFrame([industrial_], columns=industrial.columns))
 
@@ -123,9 +131,10 @@ def run_build_table(year):
     print(f'{datetime.now()} Working on Year {year}')
     compa = build_compa(year)
     compa_s1 = build_compa(year-1)
+    compa_s3 = build_compa(year-3)
     compa_s5 = build_compa(year-5)
-    build_table(compa, compa_s1, compa_s5, year, 'c')
-    build_table(compa, compa_s1, compa_s5, year, 'f')
+    build_table(compa, compa_s1, compa_s3, compa_s5, year, 'c')
+    build_table(compa, compa_s1, compa_s3, compa_s5, year, 'f')
 
 
 if __name__ == '__main__':
