@@ -1,10 +1,12 @@
 from data.y_annual import build_compa
 from data.y_quarter import build_compq
 import pandas as pd
-from global_settings import DATA_FOLDER, ccm
+from global_settings import DATA_FOLDER, ccm, groups
 from tools.utils import y_filter
 import pickle
 import os
+from datetime import datetime
+from multiprocessing import Pool
 
 
 def run_build_annual_y(permnos, group):
@@ -91,10 +93,14 @@ def run_build_y(group):
 
 
 if __name__ == '__main__':
-    pass
+    # pass
 
     # for group in groups:
     #     print(f'{datetime.now()} Working on group with permno starting with ' + group)
     #     run_build_y(group)
     # pool = Pool(14)
     # pool.map(run_build_xy, years)
+
+    for group in groups:
+        print(f'{datetime.now()} Working on group with permno starting with ' + group)
+        run_build_y(group)
