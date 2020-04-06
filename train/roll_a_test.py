@@ -166,7 +166,7 @@ end_training_year = 2018
 
 y_ts_set = {}
 y_ps_set = {}
-
+oosr2_set = {}
 
 def foo(y_s, y_s_set):
     for key in y_s.keys():
@@ -183,6 +183,9 @@ for tr_start in range(start_training_year, end_training_year, 1):
 
     y_ts, y_ps, oosr2, oosr2single, max1, max2, max3, max4, max5 = train_test_process(tr_start=tr_start, tr_duration=30, ts_duration=1, dy=1, dq=0)
     y_ts_set, y_ps_set = foo(y_ts, y_ts_set), foo(y_ps, y_ps_set)
+
+    for key in y_ts_set.keys():
+        oosr2_set[key] = sklearn.metrics.r2_score(y_ts_set[key], y_ps_set[key])
 
     if oosr2df is None:
         oosr2df = pd.DataFrame.from_dict(oosr2, orient='index', columns=[tr_start])
