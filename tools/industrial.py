@@ -143,5 +143,5 @@ def run_build_table(year):
 
 
 if __name__ == '__main__':
-    for year in np.arange(1960, 2019):
+    for year in np.arange(2019, 2020):
         run_build_table(year)
