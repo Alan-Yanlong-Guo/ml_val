@@ -5,7 +5,7 @@ from global_settings import DATA_FOLDER, ccm, groups
 from tools.utils import horizon
 import numpy as np
 import datetime
-from tools.utils import x_filter, shift
+from tools.utils import x_filter, lag
 from multiprocessing import Pool
 
 
@@ -51,6 +51,14 @@ def load_industrial(year, cf):
     return industrial
 
 
+def foo(y_quarter, permno, x_qy, x_qq, dq):
+    x_qy, x_qq = lag(x_qy, x_qq, dq)
+    y_quarter_l = y_quarter.loc[[(permno, x_qy, x_qq)], :].iloc[:, 5:]
+    y_quarter_l.columns = [_ + '_l' + str(dq) for _ in y_quarter_l.columns]
+
+    return y_quarter_l
+
+
 def build_x_line(permno, x_annual, x_quarter, x_month, y_annual, y_quarter, x_ay, x_qy, x_qq, x_my, x_mm, aq):
     x_annual = x_annual.loc[[(permno, x_ay, 4)], :]
     x_annual = x_annual.iloc[:, 5:]
@@ -68,9 +76,14 @@ def build_x_line(permno, x_annual, x_quarter, x_month, y_annual, y_quarter, x_ay
     if aq == 'a':
         x_line_y = y_annual.reset_index(drop=True)
     else:
-        y_quarter = y_quarter.loc[[(permno, x_qy, x_qq)], :]
-        y_quarter = y_quarter.iloc[:, 5:]
-        x_line_y = pd.concat([y_annual.reset_index(drop=True), y_quarter.reset_index(drop=True)], axis=1)
+        y_quarter_l0 = foo(y_quarter, permno, x_qy, x_qq, dq=0)
+        y_quarter_l1 = foo(y_quarter, permno, x_qy, x_qq, dq=1)
+        y_quarter_l2 = foo(y_quarter, permno, x_qy, x_qq, dq=2)
+        y_quarter_l3 = foo(y_quarter, permno, x_qy, x_qq, dq=3)
+
+        x_line_y = pd.concat([y_annual.reset_index(drop=True), y_quarter_l0.reset_index(drop=True),
+                              y_quarter_l1.reset_index(drop=True), y_quarter_l2.reset_index(drop=True),
+                              y_quarter_l3.reset_index(drop=True)], axis=1)
 
     if np.shape(x_annual)[0] == 1 and np.shape(x_quarter)[0] == 1 and np.shape(x_month)[0] == 1 and np.shape(x_line_y)[0] == 1:
         sic_c, sic_f = str(x_annual['sic'][0]).zfill(4)[:1], str(x_annual['sic'][0]).zfill(4)[:2]

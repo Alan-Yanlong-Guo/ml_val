@@ -43,7 +43,7 @@ def tic_unique():
             print(tic)
 
 
-def shift(x_qy, x_qq, dq):
+def lag(x_qy, x_qq, dq):
     assert type(dq) is int and dq in [0, 1, 2, 3], 'Invalid dq value'
 
     if x_qq - dq < 0:
