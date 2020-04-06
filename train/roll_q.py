@@ -84,7 +84,7 @@ def train_test_process(data_start=1975, tr_start=1975, tr_duration=20, ts_durati
         oosr2[item] = sklearn.metrics.r2_score(y_true, predictions)
         print(tr_start, item, oosr2[item], max_fea)
         print(datetime.now(), clf.best_params_)
-        y_trues[item] = y_trues
+        y_trues[item] = y_true
         y_preds[item] = predictions
 
     return oosr2, max1, max2, max3, max4, max5, y_trues, y_preds
