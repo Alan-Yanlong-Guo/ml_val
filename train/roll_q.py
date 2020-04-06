@@ -65,7 +65,7 @@ def train_test_process(data_start=1975, tr_start=1975, tr_duration=20, ts_durati
     # year on year growth prediction
 
     for item in y_tr.columns:
-        if '_1o1' not in item:
+        if 'revtq_1o1' not in item:
             continue
         # param_test = {'max_depth': [1, 2, 4], 'num_leaves': [2, 6], 'n_estimators': [20, 100, 200]}
         param_test = {'max_depth': [1], 'num_leaves': [2], 'n_estimators': [2]}
