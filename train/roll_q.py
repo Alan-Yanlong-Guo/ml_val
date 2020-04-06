@@ -96,7 +96,7 @@ y_pred_array_dict = None
 
 
 start_training_year = 1975
-end_training_year = 2018
+end_training_year = 1984
 
 
 for tr_start in range(start_training_year, end_training_year, 1):
