@@ -110,8 +110,8 @@ for tr_start in range(start_training_year, end_training_year, 1):
 
     else:
         for key in y_trues.keys():
-            y_true_array_dict[key] = np.concatenate([y_true_array_dict[key], y_true[key]])
-            y_pred_array_dict[key] = np.concatenate([y_pred_array_dict[key], y_pred[key]])
+            y_true_array_dict[key] = np.concatenate([y_true_array_dict[key], y_trues[key]])
+            y_pred_array_dict[key] = np.concatenate([y_pred_array_dict[key], y_preds[key]])
             oosr2_cum[key] = sklearn.metrics.r2_score(y_true_array_dict[key], y_pred_array_dict[key])
 
     if oosr2df is None:
