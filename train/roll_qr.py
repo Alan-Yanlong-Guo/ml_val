@@ -64,22 +64,21 @@ def train_test_process(data_start=1975, tr_start=1975, tr_duration=20, ts_durati
 
     # year on year growth prediction
 
-    variables_to_test = ['revtq_1o1',
-                         'req_1o1',
-                         'epspiq_1o1',
-                         'quickq_1o1',
-                         'curratq_1o1',
-                         'cashrratq_1o1',
-                         'peq_1o1',
-                         'roeq_1o1',
-                         'roaq_1o1',
-                         'niq_1o1',
-                         'opepsq_1o1',
-                         'oiadpq_1o1',
-                         'oibdpq_1o1',
-                         'piq_1o1',
-                         'pbq_1o1',
-                         ]
+    variables_to_test = ['revtq_1o1r',
+                         'req_1o1r',
+                         'epspiq_1o1r',
+                         'quickq_1o1r',
+                         'curratq_1o1r',
+                         'cashrratq_1o1r',
+                         'peq_1o1r',
+                         'roeq_1o1r',
+                         'roaq_1o1r',
+                         'niq_1o1r',
+                         'opepsq_1o1r',
+                         'oiadpq_1o1r',
+                         'oibdpq_1o1r',
+                         'piq_1o1r',
+                         'pbq_1o1r']
 
     for item in y_tr.columns:
         if item not in variables_to_test:
@@ -150,9 +149,9 @@ for tr_start in range(start_training_year, end_training_year, 1):
 
     oosr2df = pd.concat([oosr2df, pd.DataFrame.from_dict(oosr2_cum, orient='index', columns=['avg'])], axis=1)
 
-    oosr2df.to_csv(os.path.join('/nfs/home/mingweim/ml_val/train/result', '_'.join(["oosr2", 'q', str(0), str(1), str(start_training_year), str(end_training_year)]) + '.csv'))
-    max1df.to_csv(os.path.join('/nfs/home/mingweim/ml_val/train/result', '_'.join(["max1", 'q', str(0), str(1), str(start_training_year), str(end_training_year)]) + '.csv'))
-    max2df.to_csv(os.path.join('/nfs/home/mingweim/ml_val/train/result', '_'.join(["max2", 'q', str(0), str(1), str(start_training_year), str(end_training_year)]) + '.csv'))
-    max3df.to_csv(os.path.join('/nfs/home/mingweim/ml_val/train/result', '_'.join(["max3", 'q', str(0), str(1), str(start_training_year), str(end_training_year)]) + '.csv'))
-    max4df.to_csv(os.path.join('/nfs/home/mingweim/ml_val/train/result', '_'.join(["max4", 'q', str(0), str(1), str(start_training_year), str(end_training_year)]) + '.csv'))
-    max5df.to_csv(os.path.join('/nfs/home/mingweim/ml_val/train/result', '_'.join(["max5", 'q', str(0), str(1), str(start_training_year), str(end_training_year)]) + '.csv'))
+    oosr2df.to_csv(os.path.join('/nfs/home/mingweim/ml_val/train/result', '_'.join(["oosr2", 'qr', str(0), str(1), str(start_training_year), str(end_training_year)]) + '.csv'))
+    max1df.to_csv(os.path.join('/nfs/home/mingweim/ml_val/train/result', '_'.join(["max1", 'qr', str(0), str(1), str(start_training_year), str(end_training_year)]) + '.csv'))
+    max2df.to_csv(os.path.join('/nfs/home/mingweim/ml_val/train/result', '_'.join(["max2", 'qr', str(0), str(1), str(start_training_year), str(end_training_year)]) + '.csv'))
+    max3df.to_csv(os.path.join('/nfs/home/mingweim/ml_val/train/result', '_'.join(["max3", 'qr', str(0), str(1), str(start_training_year), str(end_training_year)]) + '.csv'))
+    max4df.to_csv(os.path.join('/nfs/home/mingweim/ml_val/train/result', '_'.join(["max4", 'qr', str(0), str(1), str(start_training_year), str(end_training_year)]) + '.csv'))
+    max5df.to_csv(os.path.join('/nfs/home/mingweim/ml_val/train/result', '_'.join(["max5", 'qr', str(0), str(1), str(start_training_year), str(end_training_year)]) + '.csv'))
