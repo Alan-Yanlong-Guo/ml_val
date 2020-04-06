@@ -129,8 +129,7 @@ for tr_start in range(start_training_year, end_training_year, 1):
         max3df = pd.concat([max3df, pd.DataFrame.from_dict(max3, orient='index', columns=[tr_start])], axis=1)
         max4df = pd.concat([max4df, pd.DataFrame.from_dict(max4, orient='index', columns=[tr_start])], axis=1)
         max5df = pd.concat([max5df, pd.DataFrame.from_dict(max5, orient='index', columns=[tr_start])], axis=1)
-        oosr2df = 
-        oosr2df.drop(columns=['avg'])
+        oosr2df = oosr2df.drop(columns=['avg'])
 
     oosr2df = pd.concat([oosr2df, pd.DataFrame.from_dict(oosr2_cum, orient='index', columns=['avg'])], axis=1)
 
