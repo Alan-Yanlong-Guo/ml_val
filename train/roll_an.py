@@ -64,25 +64,8 @@ def train_test_process(data_start=1975, tr_start=1975, tr_duration=20, ts_durati
 
     # year on year growth prediction
 
-    variables_to_test = ['revtq_1o1',
-                         'req_1o1',
-                         'epspiq_1o1',
-                         'quickq_1o1',
-                         'curratq_1o1',
-                         'cashrratq_1o1',
-                         'peq_1o1',
-                         'roeq_1o1',
-                         'roaq_1o1',
-                         'niq_1o1',
-                         'opepsq_1o1',
-                         'oiadpq_1o1',
-                         'oibdpq_1o1',
-                         'piq_1o1',
-                         'pbq_1o1',
-                         ]
-
     for item in y_tr.columns:
-        if item not in variables_to_test:
+        if '1o1' not in item:
             continue
         param_test = {'max_depth': [1, 2, 6], 'num_leaves': [2, 8], 'n_estimators': [100, 200]}
         # param_test = {'max_depth': [1], 'num_leaves': [2], 'n_estimators': [2]}
