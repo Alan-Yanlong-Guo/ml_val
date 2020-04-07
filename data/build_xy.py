@@ -159,7 +159,7 @@ def build_xy(year, dy, dq, aq, group):
     return x_df_, y_df_
 
 
-def run_build_xy(year, dy=0, dq=1, aq='q'):
+def run_build_xy(year, dy=1, dq=0, aq='a'):
     print(f'{datetime.datetime.now()} Working on year {year}')
     if aq == 'a':
         assert dq == 0, 'Invalid dq value'
@@ -184,7 +184,7 @@ def run_build_xy(year, dy=0, dq=1, aq='q'):
         pickle.dump(y_df, handle)
 
 
-def run_load_xy(years, set_name, dy=0, dq=1, save_dir='xy_data', aq='q'):
+def run_load_xy(years, set_name, dy=1, dq=0, save_dir='xy_data', aq='a'):
     folder = '_'.join(['xy', aq, str(dy), str(dq)])
     if not os.path.exists(os.path.join(DATA_FOLDER, folder)):
         raise Exception('Preprocessed xy data folder not found')
@@ -210,6 +210,6 @@ def run_load_xy(years, set_name, dy=0, dq=1, save_dir='xy_data', aq='q'):
 
 if __name__ == '__main__':
     years = np.arange(1975, 2020)
-    pool = Pool(16)
+    pool = Pool(12)
     pool.map(run_build_xy, years)
     # run_build_xy(2017)
