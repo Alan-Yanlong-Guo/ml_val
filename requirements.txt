@@ -4,4 +4,3 @@ wrds
 matplotlib
 scipy
 tqdm
-zipline

@@ -1,72 +1,64 @@
+from global_settings import conn, sp500_full
 import pandas as pd
-import os
 import numpy as np
 import datetime
+import os
 
 
-def predict_year_return(year_test_i, year_test_f, holding_period):
-    # Find business date and unique date + get sp500
-    business_date_list_full = np.array(SP500_TABLE.index)
-    sp500_list_full = np.array(SP500_TABLE['Adj Close'])
-    business_date_list = []
-    sp_500_list = []
-    for index, business_date in enumerate(business_date_list_full):
-        year = int(business_date.split('-')[0])
-        month = int(business_date.split('-')[1])
+def yearly_return(year_test_i, year_test_f):
+    year_full = pd.DatetimeIndex(sp500_full['Date']).year
+    sp500 = sp500_full[(year_full >= year_test_i) & (year_full <= year_test_f)]
+    sp500.reset_index(inplace=True, drop=True)
 
-        if year in np.arange(year_test_i, year_test_f + 1):
-            if year == 2017:
-                if month <= 7:
-                    business_date_list.append(business_date_list_full[index])
-                    sp_500_list.append((sp500_list_full[index + 1] - sp500_list_full[index]) / sp500_list_full[index])
-            else:
-                business_date_list.append(business_date_list_full[index])
-                sp_500_list.append((sp500_list_full[index + 1] - sp500_list_full[index]) / sp500_list_full[index])
+    # Initialize return list
+    short_permnos, long_permnos = [], []
+    long_equals, short_equals = [], []
+    long_values, short_values = [], []
 
-    # Initialize return and turnover list
-    long_equal_return_list = []
-    short_equal_return_list = []
-    long_value_return_list = []
-    short_value_return_list = []
-    short_permno_list = []
-    long_permno_list = []
+    # Long-short portfolio
+    for business_day in sp500['Date']:
+        long_permno, short_permno = construct_portfolio(business_day)
+        long_permnos.append(long_permno); short_permnos.append(short_permno)
 
-    # Initialize portfolio
-    for id, business_date in enumerate(business_date_list):
-        word_occur_return_df_day = word_occur_return_df_test.loc[word_occur_return_df_test['est_date'] == business_date]
-        word_occur_return_df_day = combine_permno(word_occur_return_df_day, dictionary)
-        long_permnos, short_permnos, long_equal_returns, short_equal_returns, long_caps, short_caps \
-            = predict_day_return(params, word_occur_return_df_day, dictionary, delay=1)
+        long_equal, long_value = trade(business_day, long_permno, ls='long')
+        short_equal, short_value = trade(business_day, short_permno, ls='short')
+        long_equals.append(long_equal); short_equals.append(short_equal)
+        long_values.append(long_value); short_values.append(short_value)
 
-        long_permno_list.append(long_permnos)
-        short_permno_list.append(short_permnos)
-
-        # Daily return
-        long_equal_return, long_value_return = daily_return(long_permnos, long_equal_returns, long_caps)
-        long_equal_return_list.append(long_equal_return)
-        long_value_return_list.append(long_value_return)
-
-        short_equal_return, short_value_return = daily_return(short_permnos, short_equal_returns, short_caps)
-        short_equal_return_list.append(short_equal_return)
-        short_value_return_list.append(short_value_return)
-
-    return_df = pd.DataFrame({'long_equal_return': long_equal_return_list,
-                              'long_value_return': long_value_return_list,
-                              'short_equal_return': short_equal_return_list,
-                              'short_value_return': short_value_return_list,
-                              'sp500_return': sp_500_list,
-                              'short_permno': short_permno_list,
-                              'long_permno': long_permno_list}, index=business_date_list)
+    return_df = pd.DataFrame({'short_permno': short_permnos, 'long_permno': long_permnos,
+                              'long_equal': long_equals, 'short_equal': short_equals,
+                              'long_value': long_values, 'short_value': short_values,
+                              'sp500': sp500['Return']}, index=sp500['Date'])
 
     return return_df
 
 
-def daily_return(permno_array, equal_return_array, cap_array):
-    if len(permno_array) != 0:
-        equal_return = np.mean(equal_return_array)
-        value_weight = cap_array / np.sum(cap_array)
-        value_return = np.sum(np.multiply(equal_return_array, value_weight))
-    else:
-        equal_return, value_return = 0.0, 0.0
+def trade(business_day, permno, ls):
+    assert ls in ['long', 'short'], 'invalid ls type'
+    if len(permno) == 0:
+        return 0.0, 0.0
 
-    return equal_return, value_return
+    daily_df = conn.raw_sql(f"""
+                            select a.date, a.permno, b.ticker, b.shrcd, b.siccd, a.ret, 
+                            abs(a.prc) as prc, a.shrout, a.cfacpr, a.cfacshr
+                            from crsp.dsf as a
+                            left join crsp.msenames as b
+                            on a.permno = b.permno
+                            and b.namedt <= a.date
+                            and a.date <= b.nameendt
+                            and a.date = '{business_day}'
+                            where a.permno in {permno}
+                            """)
+    daily_df['date'] = pd.to_datetime(daily_df['date'])
+
+    equal_weight = np.ones_like(daily_df['ret']) / len(permno)
+    equal = sum(daily_df['ret'] * equal_weight)
+
+    value_weight_ = (daily_df['prc'] / daily_df['cfacpr']) * (daily_df['shrout'] * daily_df['cfacshr'])
+    value_weight = value_weight_ / value_weight_.sum()
+    value = sum(daily_df['ret'] * value_weight)
+
+    if ls == 'short':
+        equal, value = -equal, -value
+
+    return equal, value
