@@ -68,7 +68,8 @@ def trade_portfolio(business_day, permno, ls):
 
 
 def construct_portfolio(business_day):
-    long_permno, short_permno = tuple(['14593', '90319']), tuple(['25785', '12490'])
+    long_permno, short_permno = tuple(['84788', '89393']), tuple(['78877', '53613'])
+    # LONG: AMAZON, NETFLIX; SHORT: CHESAPEAKE, MICRON
     return long_permno, short_permno
 
 
