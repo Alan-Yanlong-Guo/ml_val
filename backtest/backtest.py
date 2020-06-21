@@ -1,7 +1,7 @@
 from global_settings import conn, sp500_full
 import pandas as pd
 import numpy as np
-from backtest.analysis import compute_stats
+from backtest.analysis import compute_stats, plot_return
 from tqdm import tqdm_notebook
 import datetime
 import os
@@ -67,7 +67,12 @@ def trade_portfolio(business_day, permno, ls):
     return equal, value
 
 
-# def construct_portfolio(business_day):
-#     long_permno, short_permno = tuple(['14593', '90319']), tuple(['25785', '12490'])
-#     return long_permno, short_permno
+def construct_portfolio(business_day):
+    long_permno, short_permno = tuple(['14593', '90319']), tuple(['25785', '12490'])
+    return long_permno, short_permno
 
+
+if __name__ == '__main__':
+    return_df = backtest(2015, 2015)
+    stats = compute_stats(return_df, 'long', 'value')
+    fig = plot_return(return_df)

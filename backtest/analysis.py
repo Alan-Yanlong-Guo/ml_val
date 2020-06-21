@@ -54,6 +54,8 @@ def compute_stats(return_df, ls, ev):
     stats.loc['Sortino Ratio'] = mean_return / returns[returns < 0].std()
     stats.loc['Calmar Ratio'] = mean_return / (-max_dd / 100)
 
+    stats.loc['Portfolio Type Ratio'] = '-'.join([ls, ev])
+
     return stats
 
 
@@ -71,6 +73,8 @@ def plot_return(return_df):
     plt.legend(['L-S EW', 'L EW', 'S EW', 'L-S VW', 'L VW', 'S VW'])
     # plt.xlim(cumulative_num_day_list[0], cumulative_num_day_list[-1])
     # plt.xticks(cumulative_num_day_list[0::2], year_list[0::2])
+    plt.xlabel('Timestamp')
+    plt.ylabel('log return')
     plt.grid('on')
     plt.show()
 
