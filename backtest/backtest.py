@@ -1,10 +1,10 @@
-from global_settings import conn, sp500_full
 import pandas as pd
 import numpy as np
-from backtest.analysis import compute_stats, plot_return
 from tqdm import tqdm_notebook
-import datetime
-import os
+from global_settings import sp500_full
+from backtest.analysis import compute_stats, plot_return
+from portfolio.portfolio import construct_portfolio
+from utils.model_tools import construct_daily
 
 
 def backtest(year_test_i, year_test_f):
@@ -28,7 +28,7 @@ def backtest(year_test_i, year_test_f):
         long_equals.append(long_equal); short_equals.append(short_equal); ls_equals.append(ls_equal)
         long_values.append(long_value); short_values.append(short_value); ls_values.append(ls_value)
 
-    return_df = pd.DataFrame({'short_permno': short_permnos, 'long_permno': long_permnos,
+    return_df = pd.DataFrame({'long_permno': long_permnos, 'short_permno': short_permnos,
                               'long_equal': long_equals, 'short_equal': short_equals, 'ls_equal': ls_equals,
                               'long_value': long_values, 'short_value': short_values, 'ls_value': ls_values,
                               'sp500': sp500['Return']}, index=sp500['Date'])
@@ -41,17 +41,7 @@ def trade_portfolio(business_day, permno, ls):
     if len(permno) == 0:
         return 0.0, 0.0
 
-    daily_df = conn.raw_sql(f"""
-                            select a.date, a.permno, b.ticker, b.shrcd, b.siccd, a.ret, 
-                            abs(a.prc) as prc, a.shrout, a.cfacpr, a.cfacshr
-                            from crsp.dsf as a
-                            left join crsp.msenames as b
-                            on a.permno = b.permno
-                            and b.namedt <= a.date
-                            and a.date <= b.nameendt
-                            and a.date = '{business_day}'
-                            where b.permno in {permno}
-                            """)
+    daily_df = construct_daily(business_day, permno)
     daily_df['date'] = pd.to_datetime(daily_df['date'])
 
     equal_weight = np.ones_like(daily_df['ret']) / len(permno)
@@ -65,12 +55,6 @@ def trade_portfolio(business_day, permno, ls):
         equal, value = -equal, -value
 
     return equal, value
-
-
-def construct_portfolio(business_day):
-    long_permno, short_permno = tuple(['84788', '89393']), tuple(['78877', '53613'])
-    # LONG: AMAZON, NETFLIX; SHORT: CHESAPEAKE, MICRON
-    return long_permno, short_permno
 
 
 if __name__ == '__main__':

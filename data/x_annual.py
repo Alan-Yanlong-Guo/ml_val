@@ -1,6 +1,6 @@
 import pandas as pd
 import numpy as np
-from tools.utils import permnos_to_gvkeys
+from utils.data_tools import permnos_to_gvkeys
 from pandas.tseries.offsets import *
 from global_settings import conn
 

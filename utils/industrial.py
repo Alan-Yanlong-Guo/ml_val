@@ -4,8 +4,8 @@ import wrds
 import os
 import pickle
 from global_settings import DATA_FOLDER
-conn = wrds.Connection(wrds_username='dachxiu')
 from datetime import datetime
+conn = wrds.Connection(wrds_username='dachxiu')
 
 sics_c = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']
 sics_f = ['01', '02', '07', '08', '09', '10', '12', '13', '14', '15', '16', '17', '20', '21', '22', '23', '24',

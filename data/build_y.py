@@ -2,7 +2,7 @@ from data.y_annual import build_compa
 from data.y_quarter import build_compq
 import pandas as pd
 from global_settings import DATA_FOLDER, ccm, groups
-from tools.utils import y_filter
+from utils.data_tools import y_filter
 import pickle
 import os
 from datetime import datetime

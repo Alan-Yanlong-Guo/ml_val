@@ -1,7 +1,7 @@
 import pandas as pd
 import numpy as np
 from global_settings import conn
-from tools.utils import permnos_to_gvkeys
+from utils.data_tools import permnos_to_gvkeys
 
 
 def build_compq6(permnos, ccm_jun):
