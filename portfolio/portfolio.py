@@ -9,7 +9,7 @@ import numpy as np
 
 
 def construct_portfolio(business_day, lag=5):
-    # permno = ['84788', '89393', '78877', '53613']
+    # permno = ['84788', '89393', '78877', '53613'] # AMAZON, NETFLIX, CHESAPEAKE, MICRON
     permno = ['14593', '90319', '13407', '10107']  # APPLE, GOOGLE, FACEBOOK, MICROSOFT
     idx = list(sp500_full['Date']).index(business_day)
     business_lag = sp500_full['Date'][idx - lag]
